@@ -4,8 +4,6 @@ using FactorioModBrowserDownloader.ModPortal.Requests;
 using FactorioModBrowserDownloader.ModPortal.Types;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace FactorioModBrowserDownloader
