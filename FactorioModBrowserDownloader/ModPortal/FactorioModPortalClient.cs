@@ -1,4 +1,4 @@
-﻿using FactorioModBrowserDownloader.Exetnsions;
+﻿using FactorioModBrowserDownloader.Extensions;
 using FactorioModBrowserDownloader.ModPortal.Types;
 using System.Diagnostics;
 using System.IO;

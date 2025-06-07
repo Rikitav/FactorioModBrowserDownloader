@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace FactorioModBrowserDownloader.Exetnsions
+namespace FactorioModBrowserDownloader.Extensions
 {
     /*
     public class JsonDependencyInfoConverter : JsonConverter<DependencyInfo>

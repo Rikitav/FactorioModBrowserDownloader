@@ -4,42 +4,32 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FactorioModBrowserDownloader"
+        xmlns:converters="clr-namespace:FactorioModBrowserDownloader.Controls.Converters"
+        xmlns:svg="http://sharpvectors.codeplex.com/svgc/"
         mc:Ignorable="d"
         Title="{Binding Width, ElementName=this}" Height="900" Width="1200" x:Name="this">
     <Window.DataContext>
         <local:MainWindowViewModel/>
     </Window.DataContext>
 
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/MainWindowResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    
     <ScrollViewer>
+        <ScrollViewer.Background>
+            <ImageBrush ImageSource="/Resources/background.jpg" Stretch="None" TileMode="Tile" AlignmentX="Center" AlignmentY="Top" RenderOptions.BitmapScalingMode="HighQuality" RenderOptions.EdgeMode="Aliased"/>
+        </ScrollViewer.Background>
+        
         <Grid>
-            <!--Grid.Background>
-                <VisualBrush TileMode="Tile" Viewport="0,0,0.5,0.5" AlignmentY="Top" AlignmentX="Center" Stretch="UniformToFill">
-                    <VisualBrush.Visual>
-                        <Image Source="/Resources/background.jpg" Width="2048" />
-                    </VisualBrush.Visual>
-                </VisualBrush>
-            </Grid.Background-->
+            <Image Source="/Resources/factorio.png" Height="70" Margin="100,30,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
-            <Grid.Background>
-                <ImageBrush ImageSource="/Resources/background.jpg" Stretch="None" TileMode="Tile" AlignmentX="Center" AlignmentY="Top" RenderOptions.BitmapScalingMode="HighQuality" RenderOptions.EdgeMode="Aliased"/>
-            </Grid.Background>
-
-            <!--Rectangle VerticalAlignment="Top" HorizontalAlignment="Center" Width="2048" Height="3072">
-                <Rectangle.Fill>
-                    <ImageBrush ImageSource="/Resources/background.jpg"/>
-                </Rectangle.Fill>
-            </Rectangle-->
-
-            <!--Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                <Rectangle.Fill>
-                    <ImageBrush ImageSource="/Resources/background.jpg" Stretch="None" TileMode="Tile" AlignmentX="Center" AlignmentY="Top" />
-                </Rectangle.Fill>
-            </Rectangle-->
-            
-            <DockPanel MaxWidth="1000" Margin="100" HorizontalAlignment="Stretch">
+            <DockPanel MaxWidth="1000" Margin="100,150,100,100" HorizontalAlignment="Stretch">
                 <StackPanel DockPanel.Dock="Left" Width="150" Background="#242324">
-                    <Label Content="{Binding MaxHeight, ElementName=this}" ContentStringFormat="MaxHeight : {0}" Foreground="White"/>
-                    <Label Content="{Binding MaxWidth, ElementName=this}" ContentStringFormat="MaxWidth : {0}" Foreground="White"/>
                     <Label Content="{Binding FullModsList.Count}" ContentStringFormat="Loaded pages : {0}" Foreground="White"/>
                     <Image Source="{Binding LastThumbnailDownload}"/>
                 </StackPanel>
@@ -54,16 +44,32 @@
                                         <Button Content="Download" Margin="6" Width="100"/>
                                     </StackPanel>
 
-                                    <Border DockPanel.Dock="Left" Width="100" Height="100" Margin="10" CornerRadius="5">
+                                    <Border DockPanel.Dock="Left" Width="150" Height="150" Margin="10" CornerRadius="5">
                                         <Image Source="{Binding DownloadedThumbnail}"/>
                                     </Border>
 
-                                    <Border DockPanel.Dock="Right" BorderThickness="4,0,0,0" BorderBrush="#242323">
+                                    <Border DockPanel.Dock="Right" BorderThickness="4,0,0,0" Width="170" BorderBrush="#242323">
                                         <StackPanel>
-                                            <Label Content="{Binding Category}" Foreground="#ffffff"/>
-                                            <Label Content="{Binding UpdatedDate}" Foreground="#ffffff"/>
-                                            <Label Content="{Binding DisplayRelease.Version}" Foreground="#ffffff"/>
-                                            <Label Content="{Binding DownloadsCount}" Foreground="#ffffff"/>
+                                            <TextBlock Margin="10">
+                                                <Image Source="{StaticResource ModInfo_Icon_Category}" Width="20" Height="20"/>
+                                                <Run Tag="  "/>
+                                                <Run Text="{Binding Category}" Foreground="#ffffff" BaselineAlignment="Center"/>
+                                                <LineBreak/>
+                                                
+                                                <Image Source="{StaticResource ModInfo_Icon_LastUpdated}" Width="20" Height="20"/>
+                                                <Run Tag="  "/>
+                                                <Run Text="{Binding UpdatedDate, Converter={converters:RelativeDateTimeConverter}}" Foreground="#ffffff" BaselineAlignment="Center"/>
+                                                <LineBreak/>
+                                                
+                                                <Image Source="{StaticResource ModInfo_Icon_GameVersion}" Width="20" Height="20"/>
+                                                <Run Tag="  "/>
+                                                <Run Text="{Binding DisplayRelease.Version}" Foreground="#ffffff" BaselineAlignment="Center"/>
+                                                <LineBreak/>
+                                                
+                                                <Image Source="{StaticResource ModInfo_Icon_DownloadsCount}" Width="20" Height="20"/>
+                                                <Run Tag="  "/>
+                                                <Run Text="{Binding DownloadsCount}" Foreground="#ffffff" BaselineAlignment="Center"/>
+                                            </TextBlock>
                                         </StackPanel>
                                     </Border>
 

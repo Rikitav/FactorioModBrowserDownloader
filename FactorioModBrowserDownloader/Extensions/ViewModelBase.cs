@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace FactorioModBrowserDownloader.Exetnsions
+namespace FactorioModBrowserDownloader.Extensions
 {
     public abstract class ViewModelBase : INotifyPropertyChanged
     {

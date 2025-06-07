@@ -1,4 +1,4 @@
-﻿using FactorioModBrowserDownloader.Exetnsions;
+﻿using FactorioModBrowserDownloader.Extensions;
 using System.Text.Json.Serialization;
 
 namespace FactorioModBrowserDownloader.ModPortal.Types
