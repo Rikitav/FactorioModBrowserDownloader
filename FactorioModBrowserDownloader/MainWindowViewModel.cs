@@ -35,9 +35,13 @@ namespace FactorioModBrowserDownloader
 
         private async void RequestModsList()
         {
-            ModPortalList modsList = await client.SendRequest(new GetPortalModsListRequest());
-            FullModsList = [];
+            ModPortalList modsList = await client.SendRequest(new GetPortalModsListRequest()
+            {
+                SortProperty = "updated_at",
+                SortOrder = "desc"
+            });
 
+            FullModsList = [];
             List<Task> tasks = [];
             foreach (ModPageEntryInfo modEntry in modsList.Results ?? throw new Exception())
             {

@@ -5,20 +5,23 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
 
 namespace FactorioModBrowserDownloader.ModPortal
 {
-    public class FactorioModPortalClient
+    public class FactorioModPortalClient : IDisposable
     {
         private const string BaseApiUrl = "https://mods.factorio.com/api";
         private const string AssetsUrl = "https://assets-mod.factorio.com";
         private const int RetryCount = 5;
-        private const int RetryThreshold = 60;
+        private const int MaxThumbnailDownloading = 5;
+        //private const int RetryThreshold = 60;
 
-        private readonly CancellationToken GlobalCancelToken = default;
-        private readonly HttpClient httpClient = new HttpClient();
+        private CancellationToken GlobalCancelToken = default;
+        private HttpClient httpClient = new HttpClient();
+        private SemaphoreSlim ThumbnailDownloadSemaphore = new SemaphoreSlim(MaxThumbnailDownloading);
 
         public event AsyncEventHandler<ApiRequestEventArgs>? OnMakingApiRequest;
         public event AsyncEventHandler<ApiResponseEventArgs>? OnApiResponseReceived;
@@ -29,26 +32,28 @@ namespace FactorioModBrowserDownloader.ModPortal
             using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(GlobalCancelToken, cancellationToken);
             cancellationToken = cts.Token;
 
-            Uri requestUri = new Uri(Path.Combine(BaseApiUrl, request.MethodName));
-            using HttpContent? httpContent = request.ToHttpContent();
+            StringBuilder uriBuilder = new StringBuilder(Path.Combine(BaseApiUrl, request.MethodName));
+            uriBuilder.Append(request.ToUrlParameters());
+            Uri requestUri = new Uri(uriBuilder.ToString());
 
             HttpRequestMessage httpRequest = new HttpRequestMessage()
             {
                 Method = request.HttpMethod,
-                RequestUri = requestUri,
-                Content = httpContent
+                RequestUri = requestUri
             };
 
             for (int attempt = 1; attempt <= RetryCount; attempt++)
             {
+                /*
                 if (httpContent != null && RetryThreshold > 0 && RetryCount > 1 && !httpContent.Headers.ContentLength.HasValue)
                     await httpContent.LoadIntoBufferAsync().ConfigureAwait(continueOnCapturedContext: false);
+                */
 
                 ApiRequestEventArgs? requestEventArgs = null;
                 if (OnMakingApiRequest != null)
                 {
                     requestEventArgs ??= new ApiRequestEventArgs(httpRequest);
-                    await OnMakingApiRequest(this, requestEventArgs, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    await OnMakingApiRequest(this, requestEventArgs, cancellationToken).ConfigureAwait(false);
                 }
 
                 using HttpResponseMessage httpResponse = await SendRequest(httpRequest, cancellationToken);
@@ -56,7 +61,7 @@ namespace FactorioModBrowserDownloader.ModPortal
                 {
                     requestEventArgs ??= new ApiRequestEventArgs(httpRequest);
                     ApiResponseEventArgs args = new ApiResponseEventArgs(httpResponse, requestUri.AbsolutePath);
-                    await OnApiResponseReceived(this, args, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    await OnApiResponseReceived(this, args, cancellationToken).ConfigureAwait(false);
                 }
 
                 if (httpResponse.StatusCode != HttpStatusCode.OK)
@@ -69,17 +74,13 @@ namespace FactorioModBrowserDownloader.ModPortal
             throw new Exception("Out of request attempts");
         }
 
-        public async Task<BitmapSource?> DownloadThumbnail(ModPageShortInfo modPage)
+        public async Task<BitmapSource?> DownloadThumbnail(ModPageShortInfo modPage, CancellationToken cancellationToken = default)
         {
             try
             {
+                await ThumbnailDownloadSemaphore.WaitAsync(cancellationToken);
                 string thumbnailUrl = AssetsUrl + (modPage.Thumbnail ?? "/assets/.thumb.png/");
                 Debug.WriteLine("Requesting thumbnail : " + thumbnailUrl);
-
-                /*
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, thumbnailUrl);
-                request.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586");
-                */
 
                 using (HttpResponseMessage response = await httpClient.GetAsync(thumbnailUrl))
                 {
@@ -102,6 +103,7 @@ namespace FactorioModBrowserDownloader.ModPortal
                 Debug.WriteLine("Failed to load the image :", ex.Message);
             }
 
+            ThumbnailDownloadSemaphore.Release();
             return modPage.DownloadedThumbnail;
         }
 
@@ -140,5 +142,7 @@ namespace FactorioModBrowserDownloader.ModPortal
                 throw new RequestException("Exception during making request", innerException2);
             }
         }
+
+        public void Dispose() => throw new NotImplementedException();
     }
 }

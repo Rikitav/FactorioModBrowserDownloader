@@ -14,11 +14,13 @@
     <None Remove="Resources\download.svg" />
     <None Remove="Resources\factorio.png" />
     <None Remove="Resources\gear.svg" />
+    <None Remove="Resources\TitilliumWeb.ttf" />
   </ItemGroup>
 
   <ItemGroup>
 	  <Resource Include="Resources\background.jpg" />
 	  <Resource Include="Resources\factorio.png" />
+	  <EmbeddedResource Include="Resources\TitilliumWeb.ttf" />
   </ItemGroup>
 
   <ItemGroup>

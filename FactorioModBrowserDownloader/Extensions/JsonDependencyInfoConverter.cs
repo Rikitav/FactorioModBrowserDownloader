@@ -1,14 +1,30 @@
 ﻿using FactorioModBrowserDownloader.ModPortal.Types;
-using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace FactorioModBrowserDownloader.Extensions
 {
-    /*
-    public class JsonDependencyInfoConverter : JsonConverter<DependencyInfo>
+    public partial class JsonDependencyInfoConverter : JsonConverter<DependencyInfo[]>
     {
+        private static readonly Dictionary<string, Dependency> DependancyPrefix = new Dictionary<string, Dependency>()
+        {
+            { "!", Dependency.Incompatible },
+            { "?", Dependency.Optional },
+            { "~", Dependency.DontAffect },
+            { "(?)", Dependency.Hidden }
+        };
+
+        private static readonly Dictionary<string, VersionOperator> DependancyOperators = new Dictionary<string, VersionOperator>()
+        {
+            { "<", VersionOperator.Less },
+            { "<=", VersionOperator.LessOrEqual },
+            { "=", VersionOperator.Equal },
+            { ">=", VersionOperator.MoreOrEqual },
+            { ">", VersionOperator.More }
+        };
+
         private enum State
         {
             Modifier,
@@ -18,92 +34,59 @@ namespace FactorioModBrowserDownloader.Extensions
             End
         }
 
-        public override DependencyInfo? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override DependencyInfo[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            DependencyInfo dependencyInfo = new DependencyInfo();
-            State state = State.Modifier;
+            Regex parser = DependencyParserRegex();
+            List<DependencyInfo> dependencies = [];
 
             while (reader.Read())
             {
+                if (reader.TokenType == JsonTokenType.EndArray)
+                    break;
+
                 if (reader.TokenType == JsonTokenType.EndObject)
                     break;
 
-                if (reader.TokenType != JsonTokenType.PropertyName)
+                if (reader.TokenType != JsonTokenType.String)
                     throw new JsonException();
 
                 string? value = reader.GetString();
                 if (value == null)
-                    break;
+                    continue;
 
                 if (string.IsNullOrEmpty(value))
                     continue;
 
-                switch (state)
-                {
-                    case State.Modifier:
-                        {
-                            if (value == "!" | value == "?")
-                                dependencyInfo.Modifier = value;
+                Match match = parser.Match(value);
+                if (!match.Success)
+                    continue;
 
-                            state = State.ModId;
-                            continue;
-                        }
+                DependencyInfo dependency = new DependencyInfo();
 
-                    case State.ModId:
-                        {
-                            dependencyInfo.ModId = value;
-                            state = State.Operator;
-                            continue;
-                        }
+                if (match.Groups[1].Success && DependancyPrefix.TryGetValue(match.Groups[0].Value, out Dependency prefix))
+                    dependency.Prefix = prefix;
 
-                    case State.Operator:
-                        {
-                            dependencyInfo.Operator = value;
-                            state = State.Version;
-                            continue;
-                        }
+                if (match.Groups[1].Success)
+                    dependency.ModId = match.Groups[1].Value;
 
-                    case State.Version:
-                        {
-                            dependencyInfo.Version = Version.Parse(value);
-                            state = State.Version;
-                            continue;
-                        }
+                if (match.Groups[3].Success && DependancyOperators.TryGetValue(match.Groups[2].Value, out VersionOperator versionOperator))
+                    dependency.Operator = versionOperator;
 
-                    default:
-                    case State.End:
-                        {
-                            break;
-                        }
-                }
+                if (match.Groups[4].Success && Version.TryParse(match.Groups[4].Value, out Version? version))
+                    dependency.Version = version;
+
+                dependencies.Add(dependency);
             }
 
-            return dependencyInfo;
+            return dependencies.ToArray();
         }
 
-        public override void Write(Utf8JsonWriter writer, DependencyInfo value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, DependencyInfo[] value, JsonSerializerOptions options)
         {
-            StringBuilder dependencyBuilder = new StringBuilder();
-            if (value.Modifier != null)
-            {
-                dependencyBuilder.Append(value.Modifier);
-                if (value.Modifier == "!")
-                    dependencyBuilder.Append(' ');
-            }
-
-            if (value.ModId == null)
-                throw new ArgumentNullException(nameof(value.ModId));
-
-            dependencyBuilder.Append(value.ModId);
-            dependencyBuilder.Append(' ');
-
-            if (value.Operator != null && value.Version != null)
-            {
-                dependencyBuilder.Append(value.Operator);
-                dependencyBuilder.Append(' ');
-                dependencyBuilder.Append(value.Version.ToString());
-            }
+            throw new NotImplementedException();
         }
+
+        [GeneratedRegex(@"((?:\?|\!|\(\?\)|\~))?\s*(\S+)\s*((?:\<|\<\=|\=|\>\=|\>))?\s*(\S+)?")]
+        private static partial Regex DependencyParserRegex();
     }
-    */
 }

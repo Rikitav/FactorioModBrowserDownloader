@@ -16,13 +16,11 @@ namespace FactorioModBrowserDownloader.ModPortal.Types
         [JsonPropertyName("file_name"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public string? FileName { get; set; }
 
-        /*      Я еще не знаю фулл структуру этого поля
         /// <summary>
         /// A copy of the mod's info.json file, only contains factorio_version in short version, also contains an array of dependencies in full version
         /// </summary>
-        [JsonPropertyName("info_json"), JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        [JsonPropertyName("info_json"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public ModInfo? ModInfo { get; set; }
-        */
 
         /// <summary>
         /// 8601) 	ISO 8601 for when the mod was released. (RFC 3339 nano)
