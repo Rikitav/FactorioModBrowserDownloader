@@ -143,6 +143,19 @@ namespace FactorioModBrowserDownloader.ModPortal
             }
         }
 
-        public void Dispose() => throw new NotImplementedException();
+        public void Dispose()
+        {
+            if (httpClient != null)
+            {
+                httpClient.Dispose();
+                httpClient = null!;
+            }
+
+            if (ThumbnailDownloadSemaphore != null)
+            {
+                ThumbnailDownloadSemaphore.Dispose();
+                ThumbnailDownloadSemaphore = null!;
+            }
+        }
     }
 }
