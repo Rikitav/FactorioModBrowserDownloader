@@ -1,6 +1,6 @@
-﻿using FactorioModBrowserDownloader.ModPortal.Types;
+﻿using FactorioNexus.ModPortal.Types;
 
-namespace FactorioModBrowserDownloader.ModPortal.Requests
+namespace FactorioNexus.ModPortal.Requests
 {
     public class GetShortModInfoRequest(string modId) : ApiRequestBase<ModPageFullInfo>("mods", modId)
     {

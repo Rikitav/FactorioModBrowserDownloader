@@ -1,14 +1,27 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
 
-namespace FactorioModBrowserDownloader
+namespace FactorioNexus
 {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application
     {
-    }
+        public App()
+        {
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        }
 
+        protected virtual void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
+        {
+            if (!args.IsTerminating)
+                return;
+
+            if (args.ExceptionObject is not Exception exc)
+                return;
+
+            string msg = string.Format("\"{0}\" Application's execution was faulted by unhandled exception :\n\n{1}", AppDomain.CurrentDomain.FriendlyName, exc.ToString());
+            MessageBox.Show(msg, AppDomain.CurrentDomain.FriendlyName, MessageBoxButton.OK);
+        }
+    }
 }

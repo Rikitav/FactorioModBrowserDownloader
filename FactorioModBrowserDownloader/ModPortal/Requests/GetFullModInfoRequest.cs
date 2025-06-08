@@ -1,4 +1,5 @@
-﻿using FactorioModBrowserDownloader.ModPortal.Types;
+﻿using FactorioNexus.ModPortal;
+using FactorioNexus.ModPortal.Types;
 
 namespace FactorioModBrowserDownloader.ModPortal.Requests
 {

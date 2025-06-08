@@ -1,12 +1,11 @@
-﻿using System.ComponentModel;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 
-namespace FactorioModBrowserDownloader.Controls.Converters
+namespace FactorioNexus.ApplicationPresentation.Converters
 {
-    [TypeConverter(typeof(DateTime))]
+    [ValueConversion(typeof(DateTime), typeof(string))]
     public class RelativeDateTimeConverter : MarkupExtension, IValueConverter
     {
         private const int Second = 1;

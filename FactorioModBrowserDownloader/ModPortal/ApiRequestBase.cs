@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace FactorioModBrowserDownloader.ModPortal
+namespace FactorioNexus.ModPortal
 {
     public abstract class ApiRequestBase<TResponse> where TResponse : class
     {

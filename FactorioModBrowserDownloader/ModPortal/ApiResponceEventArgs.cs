@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
 
-namespace FactorioModBrowserDownloader.ModPortal
+namespace FactorioNexus.ModPortal
 {
     public class ApiResponseEventArgs(HttpResponseMessage responseMessage, string apiRequestPath) : EventArgs()
     {

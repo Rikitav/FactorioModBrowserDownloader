@@ -1,13 +1,13 @@
 ﻿using System.Windows;
 
-namespace FactorioModBrowserDownloader
+namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindowMarkup : Window
     {
-        public MainWindow()
+        public MainWindowMarkup()
         {
             InitializeComponent();
         }

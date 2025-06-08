@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <RootNamespace>FactorioNexus</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +27,12 @@
   <ItemGroup>
     <PackageReference Include="SharpVectors.Wpf" Version="1.8.4.2" />
     <PackageReference Include="System.Text.Json" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ApplicationPresentation\Controls\" />
+    <Folder Include="ApplicationPresentation\Styles\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace FactorioModBrowserDownloader.ModPortal;
+namespace FactorioNexus.ModPortal;
 
 public class RequestException : Exception
 {

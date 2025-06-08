@@ -1,19 +1,19 @@
-﻿using FactorioModBrowserDownloader.Extensions;
-using FactorioModBrowserDownloader.ModPortal;
-using FactorioModBrowserDownloader.ModPortal.Requests;
+﻿using FactorioModBrowserDownloader.ModPortal.Requests;
 using FactorioModBrowserDownloader.ModPortal.Types;
+using FactorioNexus.ApplicationPresentation.Extensions;
+using FactorioNexus.ModPortal;
+using FactorioNexus.ModPortal.Types;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Windows.Media.Imaging;
 
-namespace FactorioModBrowserDownloader
+namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
 {
     public class MainWindowViewModel : ViewModelBase
     {
         private readonly FactorioModPortalClient client;
 
         private ObservableCollection<ModPageFullInfo>? _fullModsList = null;
-        private BitmapSource? _lastThumbnailDownload = null;
+        private Dictionary<CategoryInfo, bool> _categorySelections;
 
         public ObservableCollection<ModPageFullInfo>? FullModsList
         {
@@ -21,20 +21,21 @@ namespace FactorioModBrowserDownloader
             set => Set(ref _fullModsList, value);
         }
 
-        public BitmapSource? LastThumbnailDownload
-        {
-            get => _lastThumbnailDownload;
-            set => Set(ref _lastThumbnailDownload, value);
-        }
-
         public MainWindowViewModel()
         {
+            _categorySelections = CategoryInfo.Known.Values.Select(category => new KeyValuePair<CategoryInfo, bool>(category, false)).ToDictionary();
+
             client = new FactorioModPortalClient();
             RequestModsList();
         }
 
         private async void RequestModsList()
         {
+            // HIGHLIGHTED : https://mods.factorio.com/highlights
+            // TRENDING: https://mods.factorio.com/browse/trending?exclude_category=internal&factorio_version=2.0&show_deprecated=False&only_bookmarks=False
+            // RECENTLY UPDATED : https://mods.factorio.com/browse/updated
+            // MOST DOWNLOADED : https://mods.factorio.com/browse/downloaded?exclude_category=internal&factorio_version=2.0&show_deprecated=False&only_bookmarks=False
+
             ModPortalList modsList = await client.SendRequest(new GetPortalModsListRequest()
             {
                 SortProperty = "updated_at",
@@ -52,12 +53,7 @@ namespace FactorioModBrowserDownloader
                 {
                     ModPageFullInfo fullMod = await client.SendRequest(new GetFullModInfoRequest(modEntry.ModId));
                     FullModsList.Add(fullMod);
-
-                    tasks.Add(client.DownloadThumbnail(fullMod).ContinueWith(thumb =>
-                    {
-                        LastThumbnailDownload = thumb.Result;
-                        Debug.WriteLine("Thumbnail downloaded");
-                    }));
+                    tasks.Add(client.DownloadThumbnail(fullMod));
                 }
                 catch (Exception ex)
                 {

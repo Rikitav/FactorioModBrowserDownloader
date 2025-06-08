@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Windows.Media.Imaging;
 
-namespace FactorioModBrowserDownloader.ModPortal.Types
+namespace FactorioNexus.ModPortal.Types
 {
     public class ModPageShortInfo : ModPageEntryInfo
     {

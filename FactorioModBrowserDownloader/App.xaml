@@ -1,8 +1,8 @@
-﻿<Application x:Class="FactorioModBrowserDownloader.App"
+﻿<Application x:Class="FactorioNexus.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:FactorioModBrowserDownloader"
-             StartupUri="MainWindow.xaml">
+             xmlns:local="clr-namespace:FactorioNexus"
+             StartupUri="FactorioNexus\ApplicationPresentation\Markups\MainWindow\MainWindowMarkup.xaml">
     <Application.Resources>
          
     </Application.Resources>

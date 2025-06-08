@@ -1,6 +1,8 @@
-﻿using System.Text.Json.Serialization;
+﻿using FactorioModBrowserDownloader.ModPortal.Types;
+using FactorioNexus.ModPortal.Converters;
+using System.Text.Json.Serialization;
 
-namespace FactorioModBrowserDownloader.ModPortal.Types
+namespace FactorioNexus.ModPortal.Types
 {
     public class ModPageFullInfo : ModPageShortInfo
     {
@@ -55,8 +57,8 @@ namespace FactorioModBrowserDownloader.ModPortal.Types
         /// <summary>
         /// A list of tag names that categorize the mod.
         /// </summary>
-        [JsonPropertyName("tags"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-        public string[]? Tags { get; set; }
+        [JsonPropertyName("tags"), JsonIgnore(Condition = JsonIgnoreCondition.Never), JsonConverter(typeof(JsonTagInfoConverter))]
+        public TagInfo[]? Tags { get; set; }
 
         /// <summary>
         /// The license that applies to the mod.

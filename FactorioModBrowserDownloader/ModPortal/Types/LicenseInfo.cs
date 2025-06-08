@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace FactorioModBrowserDownloader.ModPortal.Types
+namespace FactorioNexus.ModPortal.Types
 {
     public class LicenseInfo
     {

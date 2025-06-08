@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace FactorioModBrowserDownloader.Extensions
+namespace FactorioNexus.ApplicationPresentation.Extensions
 {
     public class RelayCommand(Action<object?>? execute, Func<object?, bool>? canExecute) : ICommand
     {

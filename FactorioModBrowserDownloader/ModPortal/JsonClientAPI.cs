@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace FactorioModBrowserDownloader.ModPortal
+namespace FactorioNexus.ModPortal
 {
     public static class JsonClientAPI
     {

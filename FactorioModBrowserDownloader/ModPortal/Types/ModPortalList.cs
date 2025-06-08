@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using FactorioNexus.ModPortal.Types;
+using System.Text.Json.Serialization;
 
 namespace FactorioModBrowserDownloader.ModPortal.Types
 {

@@ -1,7 +1,9 @@
-﻿using FactorioModBrowserDownloader.Extensions;
+﻿using FactorioModBrowserDownloader.ModPortal.Types;
+using FactorioNexus.ApplicationPresentation.Extensions;
+using FactorioNexus.ModPortal.Converters;
 using System.Text.Json.Serialization;
 
-namespace FactorioModBrowserDownloader.ModPortal.Types
+namespace FactorioNexus.ModPortal.Types
 {
     public class ModPageEntryInfo : ViewModelBase
     {
@@ -56,8 +58,8 @@ namespace FactorioModBrowserDownloader.ModPortal.Types
         /// <summary>
         /// A single category describing the mod.
         /// </summary>
-        [JsonPropertyName("category"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-        public string? Category { get; set; }
+        [JsonPropertyName("category"), JsonIgnore(Condition = JsonIgnoreCondition.Never), JsonConverter(typeof(JsonCategoryInfoConverter))]
+        public CategoryInfo? Category { get; set; }
 
         /// <summary>
         /// The score of the mod. *Only when not 0.
