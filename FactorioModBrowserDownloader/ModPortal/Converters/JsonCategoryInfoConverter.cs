@@ -8,12 +8,11 @@ namespace FactorioNexus.ModPortal.Converters
     {
         public override CategoryInfo? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            reader.Read();
             if (reader.TokenType != JsonTokenType.String)
                 throw new JsonException();
 
             string? value = reader.GetString();
-            if (value == null)
+            if (string.IsNullOrEmpty(value))
                 throw new JsonException();
 
             return CategoryInfo.Known[value];

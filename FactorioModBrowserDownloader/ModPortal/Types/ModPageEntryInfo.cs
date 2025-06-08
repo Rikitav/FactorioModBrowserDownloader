@@ -58,13 +58,13 @@ namespace FactorioNexus.ModPortal.Types
         /// <summary>
         /// A single category describing the mod.
         /// </summary>
-        [JsonPropertyName("category"), JsonIgnore(Condition = JsonIgnoreCondition.Never), JsonConverter(typeof(JsonCategoryInfoConverter))]
+        [JsonPropertyName("category"), JsonConverter(typeof(JsonCategoryInfoConverter)), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public CategoryInfo? Category { get; set; }
 
         /// <summary>
         /// The score of the mod. *Only when not 0.
         /// </summary>
         [JsonPropertyName("score"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-        public decimal Score { get; set; }
+        public decimal? Score { get; set; }
     }
 }
