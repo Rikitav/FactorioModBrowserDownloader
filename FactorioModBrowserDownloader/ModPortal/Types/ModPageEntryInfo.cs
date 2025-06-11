@@ -1,5 +1,4 @@
-﻿using FactorioModBrowserDownloader.ModPortal.Types;
-using FactorioNexus.ApplicationPresentation.Extensions;
+﻿using FactorioNexus.ApplicationPresentation.Extensions;
 using FactorioNexus.ModPortal.Converters;
 using System.Text.Json.Serialization;
 
@@ -29,7 +28,7 @@ namespace FactorioNexus.ModPortal.Types
         /// The mod's machine-readable ID string.
         /// </summary>
         [JsonPropertyName("name"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-        public string? ModId { get; set; }
+        public required string ModId { get; set; }
 
         /// <summary>
         /// The Factorio username of the mod's author.

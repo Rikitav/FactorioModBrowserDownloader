@@ -14,10 +14,10 @@ namespace FactorioNexus.ModPortal.Types
         public string? Thumbnail { get; set; }
 
         /// <summary>
-        /// Downloaded thumbnail bitmap object
+        /// Thumbnail bitmap object to display
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-        public BitmapSource? DownloadedThumbnail
+        public BitmapSource? DisplayThumbnail
         {
             get => _downloadedThumbnail;
             set => Set(ref _downloadedThumbnail, value);

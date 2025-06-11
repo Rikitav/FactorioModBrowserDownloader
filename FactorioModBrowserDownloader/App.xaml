@@ -4,6 +4,10 @@
              xmlns:local="clr-namespace:FactorioNexus"
              StartupUri="ApplicationPresentation\Markups\MainWindow\MainWindowMarkup.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageCheckBoxStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

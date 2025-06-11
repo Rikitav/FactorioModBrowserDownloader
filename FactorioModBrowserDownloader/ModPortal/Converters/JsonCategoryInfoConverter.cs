@@ -13,7 +13,7 @@ namespace FactorioNexus.ModPortal.Converters
 
             string? value = reader.GetString();
             if (string.IsNullOrEmpty(value))
-                throw new JsonException();
+                return CategoryInfo.Known.ElementAt(0).Value; // "no-category"
 
             return CategoryInfo.Known[value];
         }

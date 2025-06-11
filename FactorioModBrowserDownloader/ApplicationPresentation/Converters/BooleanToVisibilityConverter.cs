@@ -1,0 +1,25 @@
+﻿using System.Globalization;
+using System.Windows;
+using System.Windows.Data;
+using System.Windows.Markup;
+
+namespace FactorioNexus.ApplicationPresentation.Converters
+{
+    [ValueConversion(typeof(bool), typeof(Visibility))]
+    public class BooleanToVisibilityConverter : MarkupExtension, IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not bool state)
+                throw new ArgumentException();
+
+            if (parameter is bool param && param)
+                state = !state;
+
+            return state ? Visibility.Visible : Visibility.Hidden;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => DependencyProperty.UnsetValue;
+        public override object ProvideValue(IServiceProvider serviceProvider) => this;
+    }
+}

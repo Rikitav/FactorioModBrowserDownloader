@@ -13,8 +13,13 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
                 return;
 
             field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            NotifyPropertyChanged(propertyName);
             OnPropertyChanged(propertyName);
+        }
+
+        protected void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         protected virtual void OnPropertyChanged(string propertyName)

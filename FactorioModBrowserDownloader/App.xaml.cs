@@ -9,7 +9,7 @@ namespace FactorioNexus
     {
         public App()
         {
-            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+            //AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         }
 
         protected virtual void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)

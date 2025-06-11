@@ -1,0 +1,62 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:FactorioNexus.ApplicationPresentation.Controls">
+    
+    <Style x:Key="VintageCheckBoxStyle" TargetType="CheckBox">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+
+                    <StackPanel Orientation="Horizontal">
+                        <controls:ClippingBorder x:Name="border" CornerRadius="2" Height="16" Width="16" Margin="2" Background="#8E8E8E">
+                            <Grid>
+                                <Ellipse x:Name="dot" Width="10" Height="10" Fill="Orange" Visibility="Hidden"/>
+                                <controls:ShadowOverlayBorder x:Name="innerShadow" Panel.ZIndex="2" IsHitTestVisible="False"/>
+                                <Image x:Name="image" Panel.ZIndex="1">
+                                    <Image.Source>
+                                        <DrawingImage>
+                                            <DrawingImage.Drawing>
+                                                <DrawingGroup ClipGeometry="M0,0 V24 H24 V0 H0 Z">
+                                                    <GeometryDrawing Brush="Black" Geometry="F0 M24,24z M0,0z M17.0303,8.78039L8.99993,16.8107 5.4696,13.2804 6.53026,12.2197 8.99993,14.6894 15.9696,7.71973 17.0303,8.78039z" />
+                                                </DrawingGroup>
+                                            </DrawingImage.Drawing>
+                                        </DrawingImage>
+                                    </Image.Source>
+                                </Image>
+                            </Grid>
+                        </controls:ClippingBorder>
+
+                        <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource Mode=TemplatedParent}}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="DarkOrange"/>
+                        </Trigger>
+
+                        <Trigger Property="IsMouseOver" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="#8E8E8E"/>
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="dot" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="False">
+                            <Setter TargetName="dot" Property="Visibility" Value="Hidden"/>
+                        </Trigger>
+
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="image" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+
+                        <Trigger Property="IsChecked" Value="False">
+                            <Setter TargetName="image" Property="Visibility" Value="Hidden"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

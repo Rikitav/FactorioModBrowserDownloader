@@ -1,8 +1,7 @@
-﻿using FactorioModBrowserDownloader.ModPortal.Types;
-using FactorioNexus.ModPortal;
+﻿using FactorioNexus.ModPortal.Types;
 using System.Text.Json.Serialization;
 
-namespace FactorioModBrowserDownloader.ModPortal.Requests
+namespace FactorioNexus.ModPortal.Requests
 {
     public class GetPortalModsListRequest() : ApiRequestBase<ModPortalList>("mods")
     {
@@ -22,7 +21,7 @@ namespace FactorioModBrowserDownloader.ModPortal.Requests
         /// The amount of results to show in your search
         /// </summary>
         [JsonPropertyName("page_size")]
-        public int? PageSize { get; set; }
+        public string? PageSize { get; set; }
 
         /// <summary>
         /// Sort results by this property. Defaults to name when not defined. Ignored for page_size=max queries.

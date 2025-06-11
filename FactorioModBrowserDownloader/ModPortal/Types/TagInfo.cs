@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using System.Xml.Linq;
 
 namespace FactorioNexus.ModPortal.Types
 {
@@ -53,8 +52,8 @@ namespace FactorioNexus.ModPortal.Types
             { "enemies", new TagInfo(17, "enemies", "Enemies", "Changes to enemies or entirely new enemies to deal with.") },
             { "armor", new TagInfo(18, "armor", "Armor", "Armors or armor equipment.") },
             { "environment", new TagInfo(null, "environment", "Environment", "Map generation and terrain modification.") },
-            { "logistic-network", new TagInfo(20, "logistic-network", "Logistics", "Network 	Related to roboports and logistic robots") },
-            { "circuit-network", new TagInfo(null, "circuit-network", "Circuit", "network 	Entities which interact with the circuit network.") },
+            { "logistic-network", new TagInfo(20, "logistic-network", "Logistics", "Related to roboports and logistic robots") },
+            { "circuit-network", new TagInfo(null, "circuit-network", "Circuit", "Entities which interact with the circuit network.") },
             { "storage", new TagInfo(21, "storage", "Storage", "More than just chests.") },
             { "power", new TagInfo(22, "power", "Power", "Production 	Changes to power production and distribution.") },
             { "manufacturing", new TagInfo(23, "manufacturing", "Manufacture", "Furnaces, assembling machines, production chains") },
@@ -63,6 +62,7 @@ namespace FactorioNexus.ModPortal.Types
             { "mining", new TagInfo(27, "mining", "Mining", "New ores and resources as well as machines.") },
             { "fluids", new TagInfo(null, "fluids", "Fluids", "Things related to oil and other fluids.") },
             { "trains", new TagInfo(29, "trains", "Trains", "Trains are great, but what if they could do even more? ") },
+            { "planets", new TagInfo(null, "planets", "Planets", "More horizons to explore!") },
         };
     }
 }

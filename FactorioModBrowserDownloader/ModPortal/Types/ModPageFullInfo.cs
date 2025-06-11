@@ -1,5 +1,4 @@
-﻿using FactorioModBrowserDownloader.ModPortal.Types;
-using FactorioNexus.ModPortal.Converters;
+﻿using FactorioNexus.ModPortal.Converters;
 using System.Text.Json.Serialization;
 
 namespace FactorioNexus.ModPortal.Types

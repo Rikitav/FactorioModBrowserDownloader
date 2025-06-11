@@ -1,5 +1,4 @@
-﻿using FactorioModBrowserDownloader.ModPortal;
-using FactorioNexus.ApplicationPresentation.Extensions;
+﻿using FactorioNexus.ApplicationPresentation.Extensions;
 using FactorioNexus.ModPortal.Types;
 using System.Diagnostics;
 using System.IO;
@@ -12,26 +11,41 @@ using System.Windows.Media.Imaging;
 
 namespace FactorioNexus.ModPortal
 {
-    public class FactorioModPortalClient : IDisposable
+    public class FactorioClient : IDisposable
     {
-        private const string BaseApiUrl = "https://mods.factorio.com/api";
+        private static FactorioClient? _singleton;
+
+        public static FactorioClient Instance
+        {
+            get => _singleton ??= new FactorioClient();
+        }
+
+        private const string ApiUrl = "https://mods.factorio.com/api";
         private const string AssetsUrl = "https://assets-mod.factorio.com";
+        private const string PackagesUrl = "https://mods-storage.re146.dev";
         private const int RetryCount = 5;
         private const int MaxThumbnailDownloading = 5;
         //private const int RetryThreshold = 60;
 
         private bool isDisposed = false;
-        private HttpClient httpClient = new HttpClient();
-        private SemaphoreSlim ThumbnailDownloadSemaphore = new SemaphoreSlim(MaxThumbnailDownloading);
+        private HttpClient httpClient;
+        private SemaphoreSlim thumbnailDownloadSemaphore;
 
         public event AsyncEventHandler<ApiRequestEventArgs>? OnMakingApiRequest;
         public event AsyncEventHandler<ApiResponseEventArgs>? OnApiResponseReceived;
+
+        private FactorioClient()
+        {
+            _singleton = this;
+            httpClient = new HttpClient();
+            thumbnailDownloadSemaphore = new SemaphoreSlim(MaxThumbnailDownloading);
+        }
 
         public virtual async Task<TResponse> SendRequest<TResponse>(ApiRequestBase<TResponse> request, CancellationToken cancellationToken = default(CancellationToken)) where TResponse : class
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
-            StringBuilder uriBuilder = new StringBuilder(Path.Combine(BaseApiUrl, request.MethodName));
+            StringBuilder uriBuilder = new StringBuilder(Path.Combine(ApiUrl, request.MethodName));
             uriBuilder.Append(request.ToUrlParameters());
             Uri requestUri = new Uri(uriBuilder.ToString());
 
@@ -73,37 +87,40 @@ namespace FactorioNexus.ModPortal
             throw new Exception("Out of request attempts");
         }
 
-        public async Task<BitmapSource?> DownloadThumbnail(ModPageShortInfo modPage, CancellationToken cancellationToken = default)
+        public async Task<BitmapSource> DownloadThumbnail(ModPageShortInfo modPage, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrEmpty(modPage.Thumbnail))
+                throw new ArgumentException("Cannot download thumbnail for mod page without thumbnail", nameof(modPage.Thumbnail));
+
             try
             {
-                await ThumbnailDownloadSemaphore.WaitAsync(cancellationToken);
-                string thumbnailUrl = AssetsUrl + (modPage.Thumbnail ?? "/assets/.thumb.png/");
-                Debug.WriteLine("Requesting thumbnail : " + thumbnailUrl);
+                await thumbnailDownloadSemaphore.WaitAsync(cancellationToken);
+                string thumbnailUrl = AssetsUrl + modPage.Thumbnail;
+                Debug.WriteLine("Requesting thumbnail : {0}", thumbnailUrl);
 
-                using (HttpResponseMessage response = await httpClient.GetAsync(thumbnailUrl, cancellationToken))
+                using (Stream contentStream = await SendDataRequest(thumbnailUrl, cancellationToken))
                 {
-                    response.EnsureSuccessStatusCode();
-                    using (Stream contentStream = await response.Content.ReadAsStreamAsync(cancellationToken))
-                    {
-                        BitmapImage bitmapImage = new BitmapImage();
-                        
-                        bitmapImage.BeginInit();
-                        bitmapImage.StreamSource = new MemoryStream();
-                        contentStream.CopyTo(bitmapImage.StreamSource);
-                        bitmapImage.EndInit();
+                    BitmapImage bitmapImage = new BitmapImage();
 
-                        modPage.DownloadedThumbnail = bitmapImage;
-                    }
+                    bitmapImage.BeginInit();
+                    bitmapImage.StreamSource = new MemoryStream();
+                    contentStream.CopyTo(bitmapImage.StreamSource);
+                    bitmapImage.EndInit();
+
+                    thumbnailDownloadSemaphore.Release();
+                    return bitmapImage;
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to load the image :", ex.Message);
+                Debug.WriteLine("Failed to download the thumbnail for {0}. {1}", modPage.ModId, ex);
+                throw;
             }
+        }
 
-            ThumbnailDownloadSemaphore.Release();
-            return modPage.DownloadedThumbnail;
+        public async Task DownloadPackage(ModPageEntryInfo modPage, ReleaseInfo releaseInfo)
+        {
+            string packageUri = PackagesUrl + string.Format("/{0}/{1}.zip", modPage.ModId, releaseInfo.Version);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -123,7 +140,7 @@ namespace FactorioNexus.ModPortal
             }
         }
 
-        private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequest, CancellationToken cancellationToken)
+        private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequest, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -142,6 +159,20 @@ namespace FactorioNexus.ModPortal
             }
         }
 
+        private async Task<Stream> SendDataRequest(string requestUri, CancellationToken cancellationToken = default)
+        {
+            HttpRequestMessage requestMessage = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(requestUri)
+            };
+
+            using HttpResponseMessage responseMessage = await SendRequest(requestMessage, cancellationToken);
+            responseMessage.EnsureSuccessStatusCode();
+
+            return await responseMessage.Content.ReadAsStreamAsync(cancellationToken);
+        }
+
         public void Dispose()
         {
             if (isDisposed)
@@ -153,10 +184,10 @@ namespace FactorioNexus.ModPortal
                 httpClient = null!;
             }
 
-            if (ThumbnailDownloadSemaphore != null)
+            if (thumbnailDownloadSemaphore != null)
             {
-                ThumbnailDownloadSemaphore.Dispose();
-                ThumbnailDownloadSemaphore = null!;
+                thumbnailDownloadSemaphore.Dispose();
+                thumbnailDownloadSemaphore = null!;
             }
 
             GC.SuppressFinalize(this);

@@ -38,6 +38,7 @@ namespace FactorioNexus.ModPortal.Types
 
         public static readonly Dictionary<string, CategoryInfo> Known = new Dictionary<string, CategoryInfo>()
         {
+            { "no-category", new CategoryInfo("no-category", "no-category", "no-category") },
             { "content", new CategoryInfo("content", "Content", "Mods introducing new content into the game.") },
             { "overhaul", new CategoryInfo("overhaul", "Overhaul", "Large total conversion mods.") },
             { "tweaks", new CategoryInfo("tweaks", "Tweaks", "Small changes concerning balance, gameplay, or graphics.") },
