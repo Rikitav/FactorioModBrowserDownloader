@@ -11,6 +11,12 @@ namespace FactorioNexus.ApplicationPresentation.Controls
     /// </summary>
     public partial class ThumbnailViewer : UserControl
     {
+        public bool IsDownloading
+        {
+            get => (bool)GetValue(IsDownloadingProperty);
+            set => SetValue(IsDownloadingProperty, value);
+        }
+
         public bool IsDownloadFaulted
         {
             get => (bool)GetValue(IsDownloadFaultedProperty);
@@ -49,6 +55,7 @@ namespace FactorioNexus.ApplicationPresentation.Controls
         {
             try
             {
+                IsDownloading = true;
                 await ModsThumbnailsManager.DownloadThumbnail(modPage);
             }
             catch (MissingThumbnailException)
@@ -63,7 +70,15 @@ namespace FactorioNexus.ApplicationPresentation.Controls
             {
                 Debug.WriteLine(ex);
             }
+            finally
+            {
+                IsDownloading = false;
+            }
         }
+
+        public static readonly DependencyProperty IsDownloadingProperty = DependencyProperty.Register(
+            nameof(IsDownloading), typeof(bool), typeof(ThumbnailViewer),
+            new PropertyMetadata(false));
 
         public static readonly DependencyProperty IsDownloadFaultedProperty = DependencyProperty.Register(
             nameof(IsDownloadFaulted), typeof(bool), typeof(ThumbnailViewer),

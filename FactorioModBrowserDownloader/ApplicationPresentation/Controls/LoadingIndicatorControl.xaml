@@ -6,38 +6,40 @@
              xmlns:local="clr-namespace:FactorioNexus.ApplicationPresentation.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="450" x:Name="this">
-    <Image>
-        <Image.RenderTransform>
-            <RotateTransform x:Name="rotate" CenterX="{Binding CenterX, ElementName=this}" CenterY="{Binding CenterY, ElementName=this}"/>
-        </Image.RenderTransform>
+    <Grid Background="Transparent">
+        <Image>
+            <Image.RenderTransform>
+                <RotateTransform x:Name="rotate" CenterX="{Binding CenterX, ElementName=this}" CenterY="{Binding CenterY, ElementName=this}"/>
+            </Image.RenderTransform>
 
-        <Image.Source>
-            <DrawingImage>
-                <DrawingImage.Drawing>
-                    <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
-                        <DrawingGroup Opacity="1">
-                            <GeometryDrawing Geometry="F0 M16,16z M0,0z M8,1.5A6.5,6.5,0,1,0,8,14.5A6.5,6.5,0,0,0,8,1.5z M0,8A8,8,0,1,1,16,8A8,8,0,0,1,0,8z">
-                                <GeometryDrawing.Brush>
-                                    <SolidColorBrush Color="#FF000000" Opacity="0.2" />
-                                </GeometryDrawing.Brush>
-                            </GeometryDrawing>
-                            <GeometryDrawing Brush="#8E2B00" Geometry="F0 M16,16z M0,0z M7.25,0.75A0.75,0.75,0,0,1,8,0A8,8,0,0,1,16,8A0.75,0.75,0,0,1,14.5,8A6.5,6.5,0,0,0,8,1.5A0.75,0.75,0,0,1,7.25,0.75z" />
+            <Image.Source>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                            <DrawingGroup Opacity="1">
+                                <GeometryDrawing Geometry="F0 M16,16z M0,0z M8,1.5A6.5,6.5,0,1,0,8,14.5A6.5,6.5,0,0,0,8,1.5z M0,8A8,8,0,1,1,16,8A8,8,0,0,1,0,8z">
+                                    <GeometryDrawing.Brush>
+                                        <SolidColorBrush Color="{Binding IndicatorBackground, ElementName=this}" Opacity="0.2" />
+                                    </GeometryDrawing.Brush>
+                                </GeometryDrawing>
+                                <GeometryDrawing Brush="{Binding IndicatorForeground, ElementName=this}" Geometry="F0 M16,16z M0,0z M7.25,0.75A0.75,0.75,0,0,1,8,0A8,8,0,0,1,16,8A0.75,0.75,0,0,1,14.5,8A6.5,6.5,0,0,0,8,1.5A0.75,0.75,0,0,1,7.25,0.75z" />
+                            </DrawingGroup>
                         </DrawingGroup>
-                    </DrawingGroup>
-                </DrawingImage.Drawing>
-            </DrawingImage>
-        </Image.Source>
-        
-        <Image.Triggers>
-            <EventTrigger RoutedEvent="Loaded">
-                <BeginStoryboard>
-                    <Storyboard RepeatBehavior="Forever">
-                        <DoubleAnimation Storyboard.TargetName="rotate"
-                                     Storyboard.TargetProperty="Angle"
-                                     By="360" Duration="0:0:1"/>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-        </Image.Triggers>
-    </Image>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Image.Source>
+
+            <Image.Triggers>
+                <EventTrigger RoutedEvent="Loaded">
+                    <BeginStoryboard>
+                        <Storyboard RepeatBehavior="Forever">
+                            <DoubleAnimation Storyboard.TargetName="rotate"
+                                 Storyboard.TargetProperty="Angle"
+                                 By="360" Duration="0:0:1"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Image.Triggers>
+        </Image>
+    </Grid>
 </UserControl>

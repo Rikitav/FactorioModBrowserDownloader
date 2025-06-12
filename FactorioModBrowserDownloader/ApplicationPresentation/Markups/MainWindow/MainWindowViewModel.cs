@@ -11,17 +11,25 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
     {
         private object DownloadSyncObj = new object();
 
-        private readonly Dictionary<CheckBoolWrapper, CategoryInfo> _categorySelections = CategoryInfo.Known.Values.ToDictionary(_ => new CheckBoolWrapper());
-        private readonly Dictionary<CheckBoolWrapper, TagInfo> _tagSelections = TagInfo.Known.Values.ToDictionary(_ => new CheckBoolWrapper());
-        private readonly string[] _gameVersionSelections = ["0.13", "0.14", "0.15", "0.16", "0.17", "0.18", "1.0", "1.1", "2.0", "any"];
+        private static readonly Dictionary<CheckBoolWrapper, CategoryInfo> _categorySelections = CategoryInfo.Known.Values.ToDictionary(_ => new CheckBoolWrapper());
+        private static readonly Dictionary<CheckBoolWrapper, TagInfo> _tagSelections = TagInfo.Known.Values.ToDictionary(_ => new CheckBoolWrapper());
+        private static readonly string[] _gameVersionSelections = ["0.13", "0.14", "0.15", "0.16", "0.17", "0.18", "1.0", "1.1", "2.0", "any"];
 
+        // Mods display properties
         private ObservableCollection<ModPageFullInfo> _displayModsList = [];
+
+        // Filter settings properties
         private string? _selectedGameVersion = null;
         private bool _includeDeprecatedMods = false;
+
+        // Fallback display properties
         private bool _isCriticalError = false;
         private string? _criticalErrorMessage = null;
+
+        // Debug display properties
         private string? _currentStatus = null;
         private bool _downloading = false;
+        private string? _downloadingStatus = null;
 
         public Dictionary<CheckBoolWrapper, CategoryInfo> CategorySelections
         {
@@ -79,6 +87,12 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
             private set => Set(ref _downloading, value);
         }
 
+        public string? DownloadingStatus
+        {
+            get => _downloadingStatus;
+            private set => Set(ref _downloadingStatus, value);
+        }
+
         public MainWindowViewModel()
         {
             KickStart();
@@ -116,22 +130,36 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
             // RECENTLY UPDATED : https://mods.factorio.com/browse/updated
             // MOST DOWNLOADED : https://mods.factorio.com/browse/downloaded?exclude_category=internal&factorio_version=2.0&show_deprecated=False&only_bookmarks=False
 
-            //FullModsList.Clear();
-            foreach (ModPageEntryInfo modEntry in ModsPresenterManager.LastBrowser.Results)
+            try
             {
-                try
-                {
-                    CurrentState = "Requesting " + modEntry.ModId;
-                    ModPageFullInfo modInfo = await ModsPresenterManager.FetchFullModInfo(modEntry);
+                //FullModsList.Clear();
+                Downloading = true;
+                DownloadingStatus = "Requesting mods...";
 
-                    if (FilterModPage(modInfo))
-                        DisplayModsList.Add(modInfo);
-                }
-                catch (Exception ex)
+                foreach (ModPageEntryInfo modEntry in ModsPresenterManager.LastBrowser.Results)
                 {
-                    Debug.WriteLine("failed to download " + modEntry.ModId, ex);
-                    continue;
+                    try
+                    {
+                        CurrentState = "Requesting " + modEntry.ModId;
+                        ModPageFullInfo modInfo = await ModsPresenterManager.FetchFullModInfo(modEntry);
+
+                        if (FilterModPage(modInfo))
+                            DisplayModsList.Add(modInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine("failed to download " + modEntry.ModId, ex);
+                        continue;
+                    }
                 }
+
+                Downloading = false;
+                DownloadingStatus = null;
+            }
+            catch (TimeoutException tex)
+            {
+                IsCriticalError = true;
+                CriticalErrorMessage = "Requesting mods is timed out!";
             }
         }
 

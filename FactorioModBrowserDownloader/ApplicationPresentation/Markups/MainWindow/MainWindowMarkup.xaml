@@ -152,8 +152,8 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
 
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <controls:LoadingIndicatorControl Margin="10" Width="30" Height="30" HorizontalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="{Binding Downloading, Converter={converters:BooleanToVisibilityConverter}}">
+                                <controls:LoadingIndicatorControl Margin="10" Width="30" Height="30" IndicatorBackground="#FF000000" IndicatorForeground="#8E2B00" VerticalAlignment="Center"/>
                                 <Label Content="Getting mods..." VerticalContentAlignment="Center" Foreground="White"/>
                             </StackPanel>
                         </StackPanel>

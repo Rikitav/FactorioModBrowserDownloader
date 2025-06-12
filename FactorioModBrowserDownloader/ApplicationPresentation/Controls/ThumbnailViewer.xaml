@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FactorioNexus.ApplicationPresentation.Controls"
+             xmlns:converters="clr-namespace:FactorioNexus.ApplicationPresentation.Converters"
              xmlns:types="clr-namespace:FactorioNexus.ModPortal.Types"
              d:DataContext="{d:DesignInstance Type=types:ModPageFullInfo}"
              mc:Ignorable="d" 
@@ -15,6 +16,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="local:ThumbnailViewer">
                         <Grid>
+                            <local:LoadingIndicatorControl IndicatorBackground="#FF000000" IndicatorForeground="#242324" Height="40" Width="40" Visibility="{Binding IsDownloading, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={converters:BooleanToVisibilityConverter}}"/>
                             <Image x:Name="thumbnailImage" Source="{Binding DisplayThumbnail}" RenderOptions.EdgeMode="Unspecified" RenderOptions.BitmapScalingMode="LowQuality"/>
                         </Grid>
 
