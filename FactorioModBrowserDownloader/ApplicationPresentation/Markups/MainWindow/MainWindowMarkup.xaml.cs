@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
 {
@@ -10,6 +11,15 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
         public MainWindowMarkup()
         {
             InitializeComponent();
+        }
+
+        private void scroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            ScrollViewer scroll = (ScrollViewer)sender;
+            MainWindowViewModel model = (MainWindowViewModel)DataContext;
+
+            double delta = scroll.ScrollableHeight - scroll.ContentVerticalOffset;
+            model.RequireListExtending = delta < 500;
         }
     }
 }

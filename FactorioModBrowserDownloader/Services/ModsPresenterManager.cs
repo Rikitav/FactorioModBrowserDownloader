@@ -20,7 +20,8 @@ namespace FactorioNexus.Services
 
     public static class ModsPresenterManager
     {
-        private static ModPortalList LastList = null!;
+        private static bool Downloading = false;
+        private static ModPortalList? LastList = null;
         private static GetPortalModsListRequest LastListRequest = null!;
 
         private static readonly List<ModPageEntryInfo> _modEntries = [];
@@ -36,30 +37,36 @@ namespace FactorioNexus.Services
             get => _cachedMods;
         }
         
-        public static ModPortalList LastBrowser
+        public static ModPageEntryInfo[] LastResults
         {
-            get => LastList;
+            get => LastList?.Results ?? [];
         }
 
-        public static async Task StartNewBrowser(int? pageSize, SortBy? sortBy = null, SortOrder? sortOrder = null, CancellationToken cancellationToken = default)
+        public static void StartNewBrowser(int? pageSize, SortBy? sortBy = null, SortOrder? sortOrder = null)
         {
             Entries.Clear();
             LastListRequest = new GetPortalModsListRequest()
             {
+                PageIndex = 0,
                 SortProperty = sortBy.ToProperty(),
                 SortOrder = sortOrder.ToProperty(),
                 PageSize = pageSize?.ToString() ?? "max",
                 HideDeprecated = true
             };
 
-            await ExtendEntries(cancellationToken);
+            //await ExtendEntries(cancellationToken);
         }
 
         public static async Task ExtendEntries(CancellationToken cancellationToken = default)
         {
+            if (Downloading)
+                return;
+
             try
             {
+                Downloading = true;
                 LastListRequest.PageIndex++;
+
                 Debug.WriteLine("Extending mod entries. Current page : {0}", LastListRequest.PageIndex);
                 LastList = await FactorioClient.Instance.SendRequest(LastListRequest, cancellationToken);
 
@@ -74,8 +81,15 @@ namespace FactorioNexus.Services
             }
             catch (Exception ex)
             {
+                LastListRequest.PageIndex--;
+                LastList = null;
+
                 Debug.WriteLine("Failed to extend mods entries. {0}", ex);
                 throw;
+            }
+            finally
+            {
+                Downloading = false;
             }
         }
 

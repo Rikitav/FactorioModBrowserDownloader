@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Windows.Media.Imaging;
 
 namespace FactorioNexus.ModPortal
@@ -24,7 +25,7 @@ namespace FactorioNexus.ModPortal
         private const string AssetsUrl = "https://assets-mod.factorio.com";
         private const string PackagesUrl = "https://mods-storage.re146.dev";
         private const int RetryCount = 5;
-        private const int MaxThumbnailDownloading = 5;
+        private const int MaxThumbnailDownloading = 1;
         //private const int RetryThreshold = 60;
 
         private bool isDisposed = false;
@@ -118,9 +119,23 @@ namespace FactorioNexus.ModPortal
             }
         }
 
-        public async Task DownloadPackage(ModPageEntryInfo modPage, ReleaseInfo releaseInfo)
+        public async Task DownloadPackage(ModPageEntryInfo modPage, ReleaseInfo releaseInfo, CancellationToken cancellationToken = default)
         {
-            string packageUri = PackagesUrl + string.Format("/{0}/{1}.zip", modPage.ModId, releaseInfo.Version);
+            try
+            {
+                string packageUri = PackagesUrl + string.Format("/{0}/{1}.zip", modPage.ModId, releaseInfo.Version);
+                Debug.WriteLine("Downloading package : {0}", packageUri);
+
+                using (Stream contentStream = await SendDataRequest(packageUri, cancellationToken))
+                {
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to download the thumbnail for {0}. {1}", modPage.ModId, ex);
+                throw;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

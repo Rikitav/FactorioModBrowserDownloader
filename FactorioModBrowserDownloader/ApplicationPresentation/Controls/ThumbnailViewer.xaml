@@ -16,7 +16,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="local:ThumbnailViewer">
                         <Grid>
-                            <local:LoadingIndicatorControl IndicatorBackground="#FF000000" IndicatorForeground="#242324" Height="40" Width="40" Visibility="{Binding IsDownloading, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={converters:BooleanToVisibilityConverter}}"/>
+                            <local:LoadingIndicatorControl IndicatorBackground="#313031" IndicatorForeground="#242324" Height="40" Width="40" Visibility="{Binding IsDownloading, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={converters:BooleanToVisibilityConverter}}"/>
                             <Image x:Name="thumbnailImage" Source="{Binding DisplayThumbnail}" RenderOptions.EdgeMode="Unspecified" RenderOptions.BitmapScalingMode="LowQuality"/>
                         </Grid>
 
