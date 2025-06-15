@@ -305,12 +305,17 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
             {
                 case nameof(RequireListExtending):
                     {
-                        if (RequireListExtending && (!Downloading || !IsCriticalError))
+                        lock (ExtendLock)
                         {
-                            Debug.WriteLine("Extending mods list");
-                            ExtendList();
-                        }
+                            if (RequireListExtending)
+                            {
+                                if (Downloading | IsCriticalError)
+                                    return;
 
+                                Debug.WriteLine("Extending mods list");
+                                ExtendList();
+                            }
+                        }
                         break;
                     }
 
