@@ -10,7 +10,7 @@ namespace FactorioNexus.ModPortal.Types
         /// Returns <see cref="LatestRelease"/> or first release in <see cref="Releases"/> if <see cref="LatestRelease"/> is null
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-        public ReleaseInfo? DisplayRelease => LatestRelease ?? Releases?.ElementAt(0);
+        public ReleaseInfo DisplayRelease => LatestRelease ?? Releases?.ElementAt(0) ?? throw new MissingMemberException("Mod page doesn't have any releases");
 
         /// <summary>
         /// The latest version of the mod available for download. Absent when the namelist parameter is used.
@@ -52,7 +52,7 @@ namespace FactorioNexus.ModPortal.Types
         /// The mod's human-readable name.
         /// </summary>
         [JsonPropertyName("title"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-        public string? Title { get; set; }
+        public required string Title { get; set; }
 
         /// <summary>
         /// A single category describing the mod.

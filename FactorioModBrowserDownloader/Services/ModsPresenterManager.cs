@@ -53,8 +53,6 @@ namespace FactorioNexus.Services
                 PageSize = pageSize?.ToString() ?? "max",
                 HideDeprecated = true
             };
-
-            //await ExtendEntries(cancellationToken);
         }
 
         public static async Task ExtendEntries(CancellationToken cancellationToken = default)
@@ -68,7 +66,7 @@ namespace FactorioNexus.Services
                 LastListRequest.PageIndex++;
 
                 Debug.WriteLine("Extending mod entries. Current page : {0}", LastListRequest.PageIndex);
-                LastList = await FactorioClient.Instance.SendRequest(LastListRequest, cancellationToken);
+                LastList = await FactorioNexusClient.Instance.SendRequest(LastListRequest, cancellationToken);
 
                 if (LastList.Results is null)
                 {
@@ -78,6 +76,13 @@ namespace FactorioNexus.Services
 
                 Debug.WriteLine("Extending successfull. GFathered {0} mods", LastList.Results.Length);
                 _modEntries.AddRange(LastList.Results);
+            }
+            catch (OperationCanceledException)
+            {
+                LastListRequest.PageIndex--;
+                LastList = null;
+
+                Debug.WriteLine("Extending cancelled");
             }
             catch (Exception ex)
             {
@@ -110,7 +115,7 @@ namespace FactorioNexus.Services
             try
             {
                 Debug.WriteLine("Requesting {0} modId", modEntry.ModId);
-                fullMod = await FactorioClient.Instance.SendRequest(new GetFullModInfoRequest(modEntry.ModId), cancellationToken);
+                fullMod = await FactorioNexusClient.Instance.SendRequest(new GetFullModInfoRequest(modEntry.ModId), cancellationToken);
 
                 Debug.WriteLine("ModId {0} cached", modEntry.ModId);
                 _cachedMods.TryAdd(modEntry.ModId, fullMod);

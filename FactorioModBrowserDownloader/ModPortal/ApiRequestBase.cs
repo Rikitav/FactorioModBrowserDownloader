@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Net.Http;
 using System.Reflection;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace FactorioNexus.ModPortal
@@ -25,19 +26,26 @@ namespace FactorioNexus.ModPortal
             MethodName = Path.Combine(methodPath);
         }
 
-        public virtual string ToUrlParameters()
+        public virtual void BuildParameters(StringBuilder builder)
         {
-            IEnumerable<string> parameters = GetType()
-                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Where(property => property.GetCustomAttribute<JsonIgnoreAttribute>()?.Condition != JsonIgnoreCondition.Always)
-                .Select(property =>
-                {
-                    string propertyName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
-                    object? propertyValue = property.GetValue(this, null);
-                    return propertyValue == null ? null! : string.Format("{0}={1}", propertyName, propertyValue);
-                });
+            IEnumerable<PropertyInfo> properties = GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            if (properties.Any())
+                return;
 
-            return parameters.Any() ? "?" + string.Join("&", parameters.Where(p => p != null)) : string.Empty;
+            properties = properties.Where(property => property.GetCustomAttribute<JsonIgnoreAttribute>()?.Condition != JsonIgnoreCondition.Always);
+            if (!properties.Any())
+                return;
+
+            for (int i = 0; i < properties.Count(); i++)
+            {
+                builder.Append(i == 0 ? '?' : '&');
+                PropertyInfo property = properties.ElementAt(i);
+
+                string propertyName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
+                object? propertyValue = property.GetValue(this, null);
+
+                builder.Append(propertyName).Append('=').Append(propertyValue);
+            }
         }
     }
 }

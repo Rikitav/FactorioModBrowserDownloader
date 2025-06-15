@@ -45,6 +45,7 @@ namespace FactorioNexus.ApplicationPresentation.Controls
                         if (DataContext is not ModPageShortInfo modPage)
                             break;
 
+                        //IsThumbnailMissing = true;
                         DownloadThumbnail(modPage);
                         break;
                     }
@@ -56,7 +57,7 @@ namespace FactorioNexus.ApplicationPresentation.Controls
             try
             {
                 IsDownloading = true;
-                await ModsThumbnailsManager.DownloadThumbnail(modPage);
+                await ModsThumbnailsManager.QueueThumbnailDownloading(modPage);
             }
             catch (MissingThumbnailException)
             {

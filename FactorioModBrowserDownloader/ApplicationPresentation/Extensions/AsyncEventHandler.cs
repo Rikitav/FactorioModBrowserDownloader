@@ -2,5 +2,5 @@
 
 namespace FactorioNexus.ApplicationPresentation.Extensions
 {
-    public delegate ValueTask AsyncEventHandler<in TArgs>(FactorioClient client, TArgs args, CancellationToken cancellationToken = default(CancellationToken));
+    public delegate ValueTask AsyncEventHandler<in TArgs>(FactorioNexusClient client, TArgs args, CancellationToken cancellationToken = default(CancellationToken));
 }

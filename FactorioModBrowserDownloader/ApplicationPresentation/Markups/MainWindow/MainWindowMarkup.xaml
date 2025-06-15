@@ -23,19 +23,13 @@
     </Window.Resources>
 
     <Grid>
-        <Border x:Name="debugBorder"
+        <Border x:Name="debugBorder" Visibility="Visible"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Background="Gray" Panel.ZIndex="1"
-                Width="300" Margin="40" Opacity="0.85"
-                CornerRadius="5" IsHitTestVisible="False">
-            
-            <Border.Resources>
-                <Style TargetType="GroupBox">
-                    <Setter Property="BorderThickness" Value="1"/>
-                    <Setter Property="BorderBrush" Value="White"/>
-                    <Setter Property="Margin" Value="5,5,5,0"/>
-                </Style>
-                
+                Width="300" Margin="0,40,40,0" Opacity="0.8"
+                CornerRadius="5" IsHitTestVisible="True">
+
+            <Border.Style>
                 <Style TargetType="Border">
                     <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -54,12 +48,20 @@
                                     <Storyboard>
                                         <DoubleAnimation
                                             Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.2" To="0.85"/>
+                                            Duration="0:0:0.2" To="0.8"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
                         </Trigger>
                     </Style.Triggers>
+                </Style>
+            </Border.Style>
+            
+            <Border.Resources>
+                <Style TargetType="GroupBox">
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="BorderBrush" Value="White"/>
+                    <Setter Property="Margin" Value="5,5,5,0"/>
                 </Style>
             </Border.Resources>
 
@@ -110,11 +112,11 @@
 
                     <DockPanel>
                         <!--StackPanel DockPanel.Dock="Top" Orientation="Horizontal" FlowDirection="RightToLeft">
-                        <Button Height="30" Width="100" Content="Highlited mods"/>
-                        <Button Height="30" Width="100" Content="Recently updated"/>
-                        <Button Height="30" Width="100" Content="Most downloaded"/>
-                        <Button Height="30" Width="100" Content="Trending"/>
-                    </StackPanel-->
+                            <Button Height="30" Width="100" Content="Highlited mods"/>
+                            <Button Height="30" Width="100" Content="Recently updated"/>
+                            <Button Height="30" Width="100" Content="Most downloaded"/>
+                            <Button Height="30" Width="100" Content="Trending"/>
+                        </StackPanel-->
 
                         <controls:ClippingBorder DockPanel.Dock="Top" Height="40" CornerRadius="2" Background="#242324" Margin="10,10,10,0">
                             <Grid>
@@ -127,6 +129,9 @@
                                     </Grid>
                                 </controls:ClippingBorder>
 
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,6,6">
+                                    <Button Width="30" Command="{Binding RefreshModsListCommand}"/>
+                                </StackPanel>
                             </Grid>
                         </controls:ClippingBorder>
 
@@ -134,6 +139,7 @@
                             <Grid>
                                 <controls:ShadowOverlayBorder Panel.ZIndex="1"/>
                                 <StackPanel Background="#242324">
+                                    
                                     <StackPanel.Resources>
                                         <Style TargetType="GroupBox">
                                             <Setter Property="BorderThickness" Value="0"/>
@@ -152,7 +158,7 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
 
-                                                    <CheckBox IsChecked="{Binding Key.Value, Mode=TwoWay}" Height="25" Style="{DynamicResource VintageCheckBoxStyle}">
+                                                    <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Height="25" Command="{Binding Command}" Style="{DynamicResource VintageCheckBoxStyle}">
                                                         <Label Content="{Binding Value.Title, Mode=OneWay}" FontSize="15" Margin="0,-3,0,0" Foreground="White"/>
                                                     </CheckBox>
 
@@ -166,7 +172,7 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
 
-                                                    <CheckBox IsChecked="{Binding Key.Value, Mode=TwoWay}" Height="25" Style="{DynamicResource VintageCheckBoxStyle}">
+                                                    <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Height="25" Command="{Binding Command}" Style="{DynamicResource VintageCheckBoxStyle}">
                                                         <Label Content="{Binding Value.Title, Mode=OneWay}" FontSize="15" Margin="0,-3,0,0" Foreground="White"/>
                                                     </CheckBox>
 
@@ -178,7 +184,7 @@
                                     <GroupBox Tag="Factorio version">
                                         <StackPanel Margin="5,0,0,0">
                                             <ComboBox ItemsSource="{Binding GameVersionSelections}" SelectedValue="{Binding SelectedGameVersion}" SelectedIndex="8" Margin="0,0,10,0"/>
-                                            <CheckBox IsChecked="{Binding IncludeDeprecatedMods}" Margin="0,5,0,0">
+                                            <CheckBox IsChecked="{Binding IncludeDeprecatedMods}" Margin="0,5,0,0" Command="{Binding RefreshModsListCommand}">
                                                 <Label Content="Include deprecated mods" Margin="0,-5,0,5" Foreground="White"/>
                                             </CheckBox>
                                         </StackPanel>

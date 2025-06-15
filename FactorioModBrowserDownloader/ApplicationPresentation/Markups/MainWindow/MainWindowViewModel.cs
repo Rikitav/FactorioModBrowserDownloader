@@ -3,19 +3,25 @@ using FactorioNexus.ModPortal.Types;
 using FactorioNexus.Services;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Windows;
+using System.Windows.Input;
 
 namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private static readonly Dictionary<CheckBoolWrapper, CategoryInfo> _categorySelections = CategoryInfo.Known.Values.ToDictionary(_ => new CheckBoolWrapper());
-        private static readonly Dictionary<CheckBoolWrapper, TagInfo> _tagSelections = TagInfo.Known.Values.ToDictionary(_ => new CheckBoolWrapper());
-        private static readonly string[] _gameVersionSelections = ["0.13", "0.14", "0.15", "0.16", "0.17", "0.18", "1.0", "1.1", "2.0", "any"];
+        // Async assets
+        private readonly object ExtendLock = new object();
+        private CancellationTokenSource TokenSource = new CancellationTokenSource();
+        private CancellationToken Cancell => TokenSource.Token;
 
         // Mods display properties
-        private ObservableCollection<ModPageFullInfo> _displayModsList = [];
+        private readonly ObservableCollection<ModPageFullInfo> _displayModsList = [];
 
         // Filter settings properties
+        private readonly CheckboxValueWrapper<CategoryInfo>[] _categorySelections;
+        private readonly CheckboxValueWrapper<TagInfo>[] _tagSelections;
+        private readonly string[] _gameVersionSelections = ["0.13", "0.14", "0.15", "0.16", "0.17", "0.18", "1.0", "1.1", "2.0", "any"];
         private string? _selectedGameVersion = null;
         private bool _includeDeprecatedMods = false;
 
@@ -29,12 +35,16 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
         private string? _downloadingStatus = null;
         private bool _wantExpanding = false;
 
-        public Dictionary<CheckBoolWrapper, CategoryInfo> CategorySelections
+        // Commands
+        private RelayCommand? _refreshModsListCommand = null;
+        private RelayCommand? _downloadModCommand = null;
+
+        public CheckboxValueWrapper<CategoryInfo>[] CategorySelections
         {
             get => _categorySelections;
         }
 
-        public Dictionary<CheckBoolWrapper, TagInfo> TagSelections
+        public CheckboxValueWrapper<TagInfo>[] TagSelections
         {
             get => _tagSelections;
         }
@@ -107,6 +117,26 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
             set => Set(ref _wantExpanding, value);
         }
 
+        public RelayCommand RefreshModsListCommand
+        {
+            get => _refreshModsListCommand ??= new RelayCommand(_ =>
+            {
+                RefreshList();
+                ExtendList();
+            });
+        }
+
+        public RelayCommand DownloadModCommand
+        {
+            get => _downloadModCommand ??= new RelayCommand(obj =>
+            {
+                if (obj is not ModPageFullInfo modPage)
+                    throw new ArgumentException("Not a mod info instance");
+
+                DownloadMod(modPage);
+            });
+        }
+
         public MainWindowViewModel()
         {
             // HIGHLIGHTED : https://mods.factorio.com/highlights
@@ -114,28 +144,42 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
             // RECENTLY UPDATED : https://mods.factorio.com/browse/updated
             // MOST DOWNLOADED : https://mods.factorio.com/browse/downloaded?exclude_category=internal&factorio_version=2.0&show_deprecated=False&only_bookmarks=False
 
-            ModsPresenterManager.StartNewBrowser(25);
-            ExtendList();
+            _categorySelections = CategoryInfo.Known.Values.Skip(1).ToCheckboxValues(RefreshModsListCommand);
+            _tagSelections = TagInfo.Known.Values.ToCheckboxValues(RefreshModsListCommand);
+            RefreshModsListCommand.Execute(null);
         }
 
-        private async void ExtendList(CancellationToken cancellationToken = default)
+        private async void DownloadMod(ModPageFullInfo modPage)
         {
             try
             {
-                Downloading = true;
-                CurrentState = "Requesting entries";
-                await ModsPresenterManager.ExtendEntries(cancellationToken);
-
-                if (IsCriticalError)
-                    return;
-
-                CurrentState = "Got entries";
-                await RequestModsList(cancellationToken);
+                await ModsDownloadingManager.QueueModDownloading(modPage);
             }
             catch (OperationCanceledException)
             {
-                IsCriticalError = true;
-                CriticalErrorMessage = "Request cancelled";
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to download mod " + modPage.ModId);
+            }
+        }
+
+        private async void RefreshList()
+        {
+            try
+            {
+                CancellAndReset();
+                Downloading = true;
+                CurrentState = "Refreshing mods list";
+
+                ModsPresenterManager.StartNewBrowser(25);
+                await Task.Yield();
+            }
+            catch (OperationCanceledException)
+            {
+                //IsCriticalError = true;
+                //CriticalErrorMessage = "Request cancelled";
             }
             catch (Exception ex)
             {
@@ -149,7 +193,39 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
             }
         }
 
-        private async Task RequestModsList(CancellationToken cancellationToken = default)
+        private async void ExtendList()
+        {
+            try
+            {
+                Downloading = true;
+                CurrentState = "Requesting entries";
+                await ModsPresenterManager.ExtendEntries(Cancell);
+
+                if (IsCriticalError)
+                    return;
+
+                CurrentState = "Got entries";
+                await RequestModsList();
+            }
+            catch (OperationCanceledException)
+            {
+                //IsCriticalError = true;
+                //CriticalErrorMessage = "Request cancelled";
+                return;
+            }
+            catch (Exception ex)
+            {
+                IsCriticalError = true;
+                CriticalErrorMessage = ex.ToString();
+            }
+            finally
+            {
+                Downloading = false;
+                DownloadingStatus = null;
+            }
+        }
+
+        private async Task RequestModsList()
         {
             try
             {
@@ -158,25 +234,29 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
 
                 foreach (ModPageEntryInfo modEntry in ModsPresenterManager.LastResults)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    Cancell.ThrowIfCancellationRequested();
 
                     try
                     {
                         CurrentState = "Requesting " + modEntry.ModId;
-                        ModPageFullInfo modInfo = await ModsPresenterManager.FetchFullModInfo(modEntry, cancellationToken);
+                        ModPageFullInfo modInfo = await ModsPresenterManager.FetchFullModInfo(modEntry, Cancell);
 
                         if (FilterModPage(modInfo))
                             DisplayModsList.Add(modInfo);
                     }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
                     catch (TimeoutException)
                     {
                         Debug.WriteLine("Timed out fetching mod {0}!", modEntry.ModId);
-                        continue;
+                        throw;
                     }
                     catch (Exception ex)
                     {
                         Debug.WriteLine("failed to download " + modEntry.ModId, ex);
-                        continue;
+                        throw;
                     }
                 }
             }
@@ -189,6 +269,33 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
 
         private bool FilterModPage(ModPageFullInfo modPage)
         {
+            if (TagSelections.Any(wrap => wrap.Checked))
+            {
+                if (modPage.Tags is null || !modPage.Tags.Any())
+                    return false;
+
+                if (!TagSelections.Select(wrap => wrap.Value).Union(modPage.Tags).Any())
+                    return false;
+            }
+
+            if (CategorySelections.Any(wrap => wrap.Checked))
+            {
+                if (modPage.Category is null)
+                    return false;
+
+                if (modPage.Category.Name == "no-category")
+                    return false;
+
+                if (!CategorySelections.Select(wrap => wrap.Value).Contains(modPage.Category))
+                    return false;
+            }
+
+            if (!IncludeDeprecatedMods)
+            {
+                if (modPage.Deprecated ?? false)
+                    return false;
+            }
+
             return true;
         }
 
@@ -198,7 +305,7 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
             {
                 case nameof(RequireListExtending):
                     {
-                        if (RequireListExtending && !Downloading)
+                        if (RequireListExtending && (!Downloading || !IsCriticalError))
                         {
                             Debug.WriteLine("Extending mods list");
                             ExtendList();
@@ -206,12 +313,38 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
 
                         break;
                     }
+
+                case nameof(IncludeDeprecatedMods):
+                case nameof(SelectedGameVersion):
+                    {
+                        RefreshModsListCommand.Execute(null);
+                        break;
+                    }
             }    
         }
 
-        public class CheckBoolWrapper
+        private void CancellAndReset()
         {
-            public bool Value { get; set; } = false;
+            lock (ExtendLock)
+            {
+                IsCriticalError = false;
+                TokenSource.Cancel();
+                TokenSource.Dispose();
+                TokenSource = new CancellationTokenSource();
+            }
         }
+    }
+
+    public class CheckboxValueWrapper<TValue>(TValue value, ICommand command)
+    {
+        public TValue Value { get; } = value;
+        public ICommand Command { get; } = command;
+        public bool Checked { get; set; } = false;
+    }
+
+    internal static class CollectionsExtensions
+    {
+        public static CheckboxValueWrapper<TValue>[] ToCheckboxValues<TValue>(this IEnumerable<TValue> source, ICommand command)
+            => source.Select(value => new CheckboxValueWrapper<TValue>(value, command)).ToArray();
     }
 }

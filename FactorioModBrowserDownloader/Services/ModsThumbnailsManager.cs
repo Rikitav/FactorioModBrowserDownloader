@@ -8,6 +8,9 @@ namespace FactorioNexus.Services
 {
     public static class ModsThumbnailsManager
     {
+        private const int MaxDownloading = 5;
+        private static readonly SemaphoreSlim DownloadingSemaphore = new SemaphoreSlim(MaxDownloading);
+
         private static readonly object SyncObj = new object();
         private static readonly Dictionary<string, BitmapSource> MemoryCachedThumbnails = [];
         private static readonly string NexusAppdataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "factorio-nexus");
@@ -18,7 +21,7 @@ namespace FactorioNexus.Services
             Directory.CreateDirectory(Path.Combine(NexusAppdataDirectory, "assets"));
         }
 
-        public static async Task DownloadThumbnail(ModPageShortInfo modPage, CancellationToken cancellationToken = default)
+        public static async Task QueueThumbnailDownloading(ModPageShortInfo modPage, CancellationToken cancellationToken = default)
         {
             // Checking if mod page has an thumbnail
             if (string.IsNullOrEmpty(modPage.Thumbnail))
@@ -44,7 +47,7 @@ namespace FactorioNexus.Services
                     return;
 
                 // Trying to download thumbnail
-                if (await TryDownloadThumbnail(modPage))
+                if (await TryDownloadThumbnail(modPage, cancellationToken))
                     return;
             }
             finally
@@ -95,12 +98,13 @@ namespace FactorioNexus.Services
             }
         }
 
-        private static async Task<bool> TryDownloadThumbnail(ModPageShortInfo modPage)
+        private static async Task<bool> TryDownloadThumbnail(ModPageShortInfo modPage, CancellationToken cancellationToken = default)
         {
             try
             {
                 // Downloading thumbnail from Factorio's assets server
-                modPage.DisplayThumbnail = await FactorioClient.Instance.DownloadThumbnail(modPage);
+                await DownloadingSemaphore.WaitAsync(cancellationToken);
+                modPage.DisplayThumbnail = await FactorioNexusClient.Instance.DownloadThumbnail(modPage);
 
                 // Debug message
                 Debug.WriteLine("Thumbnail for " + modPage.ModId + " was downloaded from assets server");
@@ -111,6 +115,10 @@ namespace FactorioNexus.Services
                 // Something went wrong during thumbnail loading
                 Debug.WriteLine("Failed to download thumbnail image for " + modPage.ModId, ex);
                 return false;
+            }
+            finally
+            {
+                DownloadingSemaphore.Release();
             }
         }
 
