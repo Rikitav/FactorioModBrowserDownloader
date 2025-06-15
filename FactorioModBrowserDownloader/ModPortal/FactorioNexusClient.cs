@@ -156,8 +156,10 @@ namespace FactorioNexus.ModPortal
 
         private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequest, CancellationToken cancellationToken = default)
         {
+            /*
             if (!NativeMethods.IsInternetConnectionAvailable())
                 throw new RequestException("No internet connection");
+            */
 
             try
             {

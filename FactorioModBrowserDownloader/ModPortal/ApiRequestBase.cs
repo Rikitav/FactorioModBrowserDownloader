@@ -29,7 +29,7 @@ namespace FactorioNexus.ModPortal
         public virtual void BuildParameters(StringBuilder builder)
         {
             IEnumerable<PropertyInfo> properties = GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            if (properties.Any())
+            if (!properties.Any())
                 return;
 
             properties = properties.Where(property => property.GetCustomAttribute<JsonIgnoreAttribute>()?.Condition != JsonIgnoreCondition.Always);
@@ -43,6 +43,8 @@ namespace FactorioNexus.ModPortal
 
                 string propertyName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
                 object? propertyValue = property.GetValue(this, null);
+                if (propertyValue == null)
+                    continue;
 
                 builder.Append(propertyName).Append('=').Append(propertyValue);
             }
