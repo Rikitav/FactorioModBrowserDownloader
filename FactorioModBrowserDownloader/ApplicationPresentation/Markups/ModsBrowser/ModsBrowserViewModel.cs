@@ -147,11 +147,13 @@ public class ModsBrowserViewModel : ViewModelBase
         _categorySelections = CategoryInfo.Known.Values.Skip(1).ToCheckboxValues(RefreshModsListCommand);
         _tagSelections = TagInfo.Known.Values.ToCheckboxValues(RefreshModsListCommand);
 
+        /*
         SearchTextTimer = new ResetableAsyncTimer(TimeSpan.FromMilliseconds(500), () =>
         {
             ModsBrowsingManager.NameFilter = NameSearchText;
             RefreshModsListCommand.Execute(null);
         });
+        */
 
         RefreshList();
         ExtendList();
@@ -328,7 +330,7 @@ public class ModsBrowserViewModel : ViewModelBase
 
             case nameof(NameSearchText):
                 {
-                    SearchTextTimer.Start();
+                    //SearchTextTimer.Start();
                     break;
                 }
         }

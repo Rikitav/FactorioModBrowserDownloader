@@ -6,7 +6,7 @@ namespace FactorioNexus.Services
 {
     public static class ModsStoringManager
     {
-        public static readonly ObservableCollection<ModPageFullInfo> _storedMods = [];
+        public static readonly ObservableCollection<ModPageFullInfo> StoredMods = [];
 
         public static async void ScanCurrentStorage()
         {

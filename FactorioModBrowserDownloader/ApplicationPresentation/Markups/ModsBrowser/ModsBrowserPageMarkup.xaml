@@ -22,7 +22,7 @@
                     <Grid>
                         <controls:ShadowOverlayBorder Panel.ZIndex="2"/>
                         <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding Text, ElementName=searchBox, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                        <TextBox x:Name="searchBox" Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText}"/>
+                        <TextBox x:Name="searchBox" Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText, Mode=OneWayToSource}"/>
                     </Grid>
                 </controls:ClippingBorder>
 
