@@ -25,6 +25,26 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
             }
         }
 
+        public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize, IProgress<long>? progress = null, CancellationToken cancellationToken = default)
+        {
+            long totalBytesRead = 0;
+            byte[] buffer = new byte[bufferSize];
+
+            while (true)
+            {
+                int bytesRead = await source.ReadAsync(buffer, cancellationToken);
+                if (bytesRead == 0)
+                {
+                    progress?.Report(totalBytesRead);
+                    break;
+                }
+
+                await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+                totalBytesRead += bytesRead;
+                progress?.Report(totalBytesRead);
+            }
+        }
+
         public static string FirstLetterToUpper(this string source)
         {
             int index = -1;
@@ -44,5 +64,8 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
             builder[index] = char.ToUpper(target);
             return builder.ToString();
         }
+
+        public static FileInfo IndexFile(this DirectoryInfo directory, string fileName)
+            => new FileInfo(Path.Combine(directory.FullName, fileName));
     }
 }

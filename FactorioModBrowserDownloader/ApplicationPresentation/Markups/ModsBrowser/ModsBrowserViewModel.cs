@@ -3,9 +3,7 @@ using FactorioNexus.ModPortal.Types;
 using FactorioNexus.Services;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Timers;
 using System.Windows.Input;
-using System.Windows.Threading;
 
 #pragma warning disable IDE0079
 #pragma warning disable CA1822
@@ -17,7 +15,7 @@ public class ModsBrowserViewModel : ViewModelBase
     private readonly object ExtendLock = new object();
     private CancellationTokenSource TokenSource = new CancellationTokenSource();
     private CancellationToken Cancell => TokenSource.Token;
-    private ResetableAsyncTimer SearchTextTimer;
+    private readonly ResetableAsyncTimer SearchTextTimer;
 
     // Mods display properties
     private readonly ObservableCollection<ModPageFullInfo> _displayModsList = [];

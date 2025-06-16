@@ -1,15 +1,20 @@
 ﻿using FactorioNexus.ApplicationPresentation.Extensions;
-using FactorioNexus.ModPortal.Types;
 using FactorioNexus.Services;
 using System.Collections.ObjectModel;
 
-namespace FactorioNexus.ApplicationPresentation.Markups.StorageBrowser
+#pragma warning disable IDE0079
+#pragma warning disable CA1822
+namespace FactorioNexus.ApplicationPresentation.Markups.StorageBrowser;
+
+public class StorageBrowserViewModel : ViewModelBase
 {
-    public class StorageBrowserViewModel : ViewModelBase
+    public ObservableCollection<ModStoreEntry> StoredMods
     {
-        public ObservableCollection<ModPageFullInfo> StoredMods
-        {
-            get => ModsStoringManager.StoredMods;
-        }
+        get => ModsStoringManager.StoredMods;
+    }
+
+    public StorageBrowserViewModel()
+    {
+        ModsStoringManager.ScanCurrentStorage();
     }
 }

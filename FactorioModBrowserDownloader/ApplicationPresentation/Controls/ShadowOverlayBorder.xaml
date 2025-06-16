@@ -7,8 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="150" x:Name="this" IsHitTestVisible="False">
     
-    <Border BorderThickness="1.5" ClipToBounds="True" CornerRadius="8">
-        <Border Background="Transparent" BorderBrush="{Binding BorderBrush, ElementName=this, TargetNullValue=Black}" BorderThickness="10" Margin="-12" CornerRadius="8">
+    <Border BorderThickness="1.5" ClipToBounds="True">
+        <Border Background="Transparent" BorderBrush="{Binding BorderBrush, ElementName=this, TargetNullValue=Black}" BorderThickness="10" Margin="-11.5" CornerRadius="8">
             <Border.Effect>
                 <DropShadowEffect ShadowDepth="0" BlurRadius="10"/>
             </Border.Effect>

@@ -12,6 +12,12 @@
     </UserControl.DataContext>
     
     <Grid>
-            
+        <ItemsControl ItemsSource="{Binding StoredMods}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Info}"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl> 
     </Grid>
 </UserControl>

@@ -6,8 +6,10 @@
         xmlns:local="clr-namespace:FactorioNexus.ApplicationPresentation.Markups.MainWindow"
         xmlns:controls="clr-namespace:FactorioNexus.ApplicationPresentation.Controls"
         xmlns:browser="clr-namespace:FactorioNexus.ApplicationPresentation.Markups.ModsBrowser"
+        xmlns:storage="clr-namespace:FactorioNexus.ApplicationPresentation.Markups.StorageBrowser"
         mc:Ignorable="d" FontFamily="pack://application:,,,/Fonts/#Titillium Web"
         Title="Factorio NEXUS" Height="900" Width="1200" x:Name="this">
+    
     <Window.DataContext>
         <local:MainWindowViewModel/>
     </Window.DataContext>
@@ -15,12 +17,12 @@
     <Grid>
 
         <!-- Debug panel that shows some properties of current ViewModel -->
-        <controls:ViewModelDebugPanel
+        <!--controls:ViewModelDebugPanel
             DataContext="{Binding DataContext, ElementName=browser}"
             VerticalAlignment="Top"
             HorizontalAlignment="Right"
             Panel.ZIndex="1" 
-            IsHitTestVisible="True"/>
+            IsHitTestVisible="True"/-->
         
         <!-- An outer body of window. Used for cool background and long pages displaying -->
         <ScrollViewer x:Name="scroll" ScrollChanged="ScrollChanged">
@@ -49,12 +51,33 @@
                     <!-- Mods browser tab -->
                     <TabItem>
                         <TabItem.Header>
-                            <TextBlock Text="Browse mods"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Width="40" Height="40">
+                                    <Image.Source>
+                                        <DrawingImage>
+                                            <DrawingImage.Drawing>
+                                                <DrawingGroup ClipGeometry="M0,0 V512 H512 V0 H0 Z">
+                                                    <GeometryDrawing Brush="#FF000000" Geometry="F1 M512,512z M0,0z M352,256C352,278.2,350.8,299.6,348.7,320L163.4,320C161.2,299.6 160.1,278.2 160.1,256 160.1,233.8 161.3,212.4 163.4,192L348.7,192C350.9,212.4,352,233.8,352,256z M380.8,192L503.9,192C509.2,212.5 512,233.9 512,256 512,278.1 509.2,299.5 503.9,320L380.8,320C382.9,299.4 384,278 384,256 384,234 382.9,212.6 380.8,192z M493.4,160L376.7,160C366.7,96.1 346.9,42.6 321.4,8.40000000000001 399.7,29.1 463.4,85.9 493.3,160z M344.3,160L167.7,160C173.8,123.6 183.2,91.4 194.7,65.3 205.2,41.7 216.9,24.6 228.2,13.8 239.4,3.2 248.7,0 256,0 263.3,0 272.6,3.2 283.8,13.8 295.1,24.6 306.8,41.7 317.3,65.3 328.9,91.3 338.2,123.5 344.3,160z M135.3,160L18.6,160C48.6,85.9 112.2,29.1 190.6,8.4 165.1,42.6 145.3,96.1 135.3,160z M8.1,192L131.2,192C129.1,212.6 128,234 128,256 128,278 129.1,299.4 131.2,320L8.1,320C2.8,299.5 0,278.1 0,256 0,233.9 2.8,212.5 8.1,192z M194.7,446.6C183.1,420.6,173.8,388.4,167.7,352L344.3,352C338.2,388.4 328.8,420.6 317.3,446.6 306.8,470.2 295.1,487.3 283.8,498.1 272.6,508.8 263.3,512 256,512 248.7,512 239.4,508.8 228.2,498.2 216.9,487.4 205.2,470.3 194.7,446.7z M135.3,352C145.3,415.9 165.1,469.4 190.6,503.6 112.2,482.9 48.6,426.1 18.6,352L135.3,352z M493.4,352C463.4,426.1 399.8,482.9 321.5,503.6 347,469.4 366.7,415.9 376.8,352L493.5,352z" />
+                                                </DrawingGroup>
+                                            </DrawingImage.Drawing>
+                                        </DrawingImage>
+                                    </Image.Source>
+                                </Image>
+                                <TextBlock Text="Explore" VerticalAlignment="Stretch" FontSize="30"/>
+                            </StackPanel>
                         </TabItem.Header>
 
                         <browser:ModsBrowserPageMarkup x:Name="browser"/>
                     </TabItem>
-                
+
+                    <TabItem>
+                        <TabItem.Header>
+                            <TextBlock Text="Manage"/>
+                        </TabItem.Header>
+
+                        <storage:StorageBrowserPageMarkup/>
+                    </TabItem>
+                    
                 </TabControl>
                 
             </Grid>

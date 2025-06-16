@@ -65,6 +65,20 @@ namespace FactorioNexus.Services
             }
         }
 
+        public static BitmapSource LoadThumbnailFile(FileInfo thumbnailFile)
+        {
+            using FileStream fileStream = thumbnailFile.OpenRead();
+            BitmapImage openedImage = new BitmapImage();
+
+            // Copying from filestream
+            openedImage.BeginInit();
+            openedImage.StreamSource = new MemoryStream();
+            fileStream.CopyTo(openedImage.StreamSource);
+            openedImage.EndInit();
+
+            return openedImage;
+        }
+
         private static bool TryLoadCachedThumbnail(ModPageShortInfo modPage, string cachePath)
         {
             try
@@ -74,17 +88,8 @@ namespace FactorioNexus.Services
                     if (!IsThumbnailCached(cachePath))
                         return false;
 
-                    using FileStream fileStream = File.OpenRead(cachePath);
-                    BitmapImage openedImage = new BitmapImage();
-
-                    // Copying from filestream
-                    openedImage.BeginInit();
-                    openedImage.StreamSource = new MemoryStream();
-                    fileStream.CopyTo(openedImage.StreamSource);
-                    openedImage.EndInit();
-
                     // Setting as used display
-                    modPage.DisplayThumbnail = openedImage;
+                    modPage.DisplayThumbnail = LoadThumbnailFile(new FileInfo(cachePath));
 
                     // Debug message
                     Debug.WriteLine("Thumbnail for {0} was restored from cached thumbnails", [modPage.ModId]);

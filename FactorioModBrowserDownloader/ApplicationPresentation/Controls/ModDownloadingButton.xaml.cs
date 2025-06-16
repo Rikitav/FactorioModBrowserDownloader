@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace FactorioNexus.ApplicationPresentation.Controls
 {
@@ -18,15 +19,21 @@ namespace FactorioNexus.ApplicationPresentation.Controls
             set => SetValue(DisplayStringProperty, value);
         }
 
+        public ModStoreStatus DisplayStatus
+        {
+            get => (ModStoreStatus)GetValue(DisplayStatusProperty);
+            set => SetValue(DisplayStatusProperty, value);
+        }
+
         public ModPageFullInfo ModPage
         {
             get => (ModPageFullInfo)GetValue(ModPageProperty);
             set => SetValue(ModPageProperty, value);
         }
 
-        public DownloadingModEntry DownloadEntry
+        public ModDownloadEntry DownloadEntry
         {
-            get => (DownloadingModEntry)GetValue(DownloadEntryProperty);
+            get => (ModDownloadEntry)GetValue(DownloadEntryProperty);
             set => SetValue(DownloadEntryProperty, value);
         }
 
@@ -59,7 +66,10 @@ namespace FactorioNexus.ApplicationPresentation.Controls
             {
                 case nameof(ModPage):
                     {
+
+
                         DownloadEntry = ModsDownloadingManager.FindEntry(ModPage);
+                        SetBinding(DisplayStatusProperty, new Binding("DownloadEntry.Status") { ElementName = "this" });
                         break;
                     }
 
@@ -126,12 +136,16 @@ namespace FactorioNexus.ApplicationPresentation.Controls
             nameof(DisplayString), typeof(string), typeof(ModDownloadingButton),
             new PropertyMetadata("Download"));
 
+        public static readonly DependencyProperty DisplayStatusProperty = DependencyProperty.Register(
+            nameof(DisplayStatus), typeof(ModStoreStatus), typeof(ModDownloadingButton),
+            new PropertyMetadata(ModStoreStatus.Ready));
+
         public static readonly DependencyProperty ModPageProperty = DependencyProperty.Register(
             nameof(ModPage), typeof(ModPageFullInfo), typeof(ModDownloadingButton),
             new PropertyMetadata(null));
 
         public static readonly DependencyProperty DownloadEntryProperty = DependencyProperty.Register(
-            nameof(DownloadEntry), typeof(DownloadingModEntry), typeof(ModDownloadingButton),
+            nameof(DownloadEntry), typeof(ModDownloadEntry), typeof(ModDownloadingButton),
             new PropertyMetadata(null));
     }
 }

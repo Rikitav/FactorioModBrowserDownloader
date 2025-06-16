@@ -6,22 +6,62 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-
-                    <Grid>
-                        <Border>
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#5EB663"/>
-                            </Border.Effect>    
-                        </Border>
-                        
-                        <controls:ClippingBorder>
-                            
-                        </controls:ClippingBorder>
-                    </Grid>
                     
+                    <!-- Content -->
+                    <controls:ClippingBorder x:Name="border" CornerRadius="2" BorderThickness="0,0,0,2" BorderBrush="#1A280B">
+                        <controls:ClippingBorder.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="3" Direction="270" Color="Black"/>
+                        </controls:ClippingBorder.Effect>
+
+                        <Grid x:Name="panel" Background="#5EB663">
+                            <controls:ShadowOverlayBorder Panel.ZIndex="1"/>
+                            <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource Mode=TemplatedParent}}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </controls:ClippingBorder>
+
+                    <!-- Triggers -->
                     <ControlTemplate.Triggers>
-                        
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="panel" Property="Background" Value="#92E897"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#5EB663"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="panel" Property="Background" Value="#CFDF93"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect BlurRadius="5" ShadowDepth="0" Color="#5EB663"/>
+                                </Setter.Value>
+                            </Setter>
+
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.1" To="0,2,0,0"/>
+                                        <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.1" To="0"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.5" To="0"/>
+                                        <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.5" To="0,0,0,2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
                     </ControlTemplate.Triggers>
+
+                    <!-- Resource -->
+                    <ControlTemplate.Resources>
+                        
+                    </ControlTemplate.Resources>
                     
                 </ControlTemplate>
             </Setter.Value>

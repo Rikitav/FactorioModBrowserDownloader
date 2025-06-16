@@ -109,8 +109,11 @@ namespace FactorioNexus.Services
         }
 
         public static async Task<ModPageFullInfo> FetchFullModInfo(ModPageEntryInfo modEntry, CancellationToken cancellationToken = default)
+            => await FetchFullModInfo(modEntry.ModId, cancellationToken);
+
+        public static async Task<ModPageFullInfo> FetchFullModInfo(string modId, CancellationToken cancellationToken = default)
         {
-            if (Cached.TryGetValue(modEntry.ModId, out ModPageFullInfo? fullMod))
+            if (Cached.TryGetValue(modId, out ModPageFullInfo? fullMod))
             {
                 Debug.WriteLine("ModPageFullInfo was restored from cached mods");
                 return fullMod;
@@ -118,16 +121,16 @@ namespace FactorioNexus.Services
 
             try
             {
-                Debug.WriteLine("Requesting {0} modId", [modEntry.ModId]);
-                fullMod = await FactorioNexusClient.Instance.SendRequest(new GetFullModInfoRequest(modEntry.ModId), cancellationToken);
+                Debug.WriteLine("Requesting {0} modId", [modId]);
+                fullMod = await FactorioNexusClient.Instance.SendRequest(new GetFullModInfoRequest(modId), cancellationToken);
 
-                Debug.WriteLine("ModId {0} cached", [modEntry.ModId]);
-                _cachedMods.TryAdd(modEntry.ModId, fullMod);
+                Debug.WriteLine("ModId {0} cached", [modId]);
+                _cachedMods.TryAdd(modId, fullMod);
                 return fullMod;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("failed to cache {0}. {1}", [modEntry.ModId, ex]);
+                Debug.WriteLine("failed to cache {0}. {1}", [modId, ex]);
                 throw;
             }
         }

@@ -50,7 +50,7 @@
                         </Style>
 
                         <DataTemplate x:Key="itemTemplate">
-                            <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Height="25" Command="{Binding Command}" Style="{DynamicResource VintageCheckBoxStyle}">
+                            <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Height="25" Command="{Binding Command}">
                                 <Label Content="{Binding Value.Title, Mode=OneWay}" FontSize="15" Margin="0,-3,0,0" Foreground="White"/>
                             </CheckBox>
                         </DataTemplate>
