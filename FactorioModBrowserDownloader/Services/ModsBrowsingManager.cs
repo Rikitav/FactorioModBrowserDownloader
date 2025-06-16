@@ -18,7 +18,7 @@ namespace FactorioNexus.Services
         Descending
     }
 
-    public static class ModsPresenterManager
+    public static class ModsBrowsingManager
     {
         private static bool Downloading = false;
         private static ModPortalList? LastList = null;
@@ -42,6 +42,12 @@ namespace FactorioNexus.Services
             get => LastList?.Results ?? [];
         }
 
+        public static string? NameFilter
+        {
+            get;
+            set;
+        }
+
         public static void StartNewBrowser(int? pageSize, SortBy? sortBy = null, SortOrder? sortOrder = null)
         {
             Entries.Clear();
@@ -53,6 +59,7 @@ namespace FactorioNexus.Services
                 SortProperty = sortBy.ToProperty(),
                 SortOrder = sortOrder.ToProperty(),
                 PageSize = pageSize?.ToString() ?? "max",
+                Namelist = NameFilter,
                 HideDeprecated = true
             };
         }
@@ -66,6 +73,7 @@ namespace FactorioNexus.Services
             {
                 Downloading = true;
                 LastListRequest.PageIndex++;
+                LastListRequest.Namelist = NameFilter;
 
                 Debug.WriteLine("Extending mod entries. Current page : {0}", [LastListRequest.PageIndex]);
                 LastList = await FactorioNexusClient.Instance.SendRequest(LastListRequest, cancellationToken);

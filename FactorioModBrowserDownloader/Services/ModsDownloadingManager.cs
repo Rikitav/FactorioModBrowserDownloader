@@ -26,7 +26,7 @@ namespace FactorioNexus.Services
         private const int MaxDownloading = 5;
         private static readonly SemaphoreSlim DownloadingSemaphore = new SemaphoreSlim(MaxDownloading);
 
-        private static readonly ObservableCollection<DownloadingModEntry> DownloadingModsList = new ObservableCollection<DownloadingModEntry>();
+        public static readonly ObservableCollection<DownloadingModEntry> DownloadingModsList = [];
         
         public static DownloadingModEntry QueueModDownloading(ModPageFullInfo modPage, ReleaseInfo release, CancellationToken cancellationToken = default)
         {

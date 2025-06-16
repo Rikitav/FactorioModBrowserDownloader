@@ -3,7 +3,9 @@ using FactorioNexus.ModPortal.Types;
 using FactorioNexus.Services;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Timers;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 #pragma warning disable IDE0079
 #pragma warning disable CA1822
@@ -15,6 +17,7 @@ public class ModsBrowserViewModel : ViewModelBase
     private readonly object ExtendLock = new object();
     private CancellationTokenSource TokenSource = new CancellationTokenSource();
     private CancellationToken Cancell => TokenSource.Token;
+    private ResetableAsyncTimer SearchTextTimer;
 
     // Mods display properties
     private readonly ObservableCollection<ModPageFullInfo> _displayModsList = [];
@@ -25,6 +28,7 @@ public class ModsBrowserViewModel : ViewModelBase
     private readonly string[] _gameVersionSelections = ["0.13", "0.14", "0.15", "0.16", "0.17", "0.18", "1.0", "1.1", "2.0", "any"];
     private string? _selectedGameVersion = null;
     private bool _includeDeprecatedMods = false;
+    private string? _nameSearchText = null;
 
     // Debug display properties
     private bool _isCriticalError = false;
@@ -56,12 +60,12 @@ public class ModsBrowserViewModel : ViewModelBase
 
     public Dictionary<string, ModPageFullInfo>.ValueCollection CachedMods
     {
-        get => ModsPresenterManager.Cached.Values;
+        get => ModsBrowsingManager.Cached.Values;
     }
 
     public List<ModPageEntryInfo> ModsEntries
     {
-        get => ModsPresenterManager.Entries;
+        get => ModsBrowsingManager.Entries;
     }
 
     public ObservableCollection<ModPageFullInfo> DisplayModsList
@@ -117,10 +121,17 @@ public class ModsBrowserViewModel : ViewModelBase
         set => Set(ref _requireListExtending, value);
     }
 
+    public string? NameSearchText
+    {
+        get => _nameSearchText;
+        set => Set(ref _nameSearchText, value);
+    }
+
     public RelayCommand RefreshModsListCommand
     {
         get => _refreshModsListCommand ??= new RelayCommand(_ =>
         {
+            Debug.WriteLine("Refresh requested");
             RefreshList();
             ExtendList();
         });
@@ -136,6 +147,12 @@ public class ModsBrowserViewModel : ViewModelBase
         _categorySelections = CategoryInfo.Known.Values.Skip(1).ToCheckboxValues(RefreshModsListCommand);
         _tagSelections = TagInfo.Known.Values.ToCheckboxValues(RefreshModsListCommand);
 
+        SearchTextTimer = new ResetableAsyncTimer(TimeSpan.FromMilliseconds(500), () =>
+        {
+            ModsBrowsingManager.NameFilter = NameSearchText;
+            RefreshModsListCommand.Execute(null);
+        });
+
         RefreshList();
         ExtendList();
     }
@@ -149,7 +166,7 @@ public class ModsBrowserViewModel : ViewModelBase
 
             CancellAndReset();
             DisplayModsList.Clear();
-            ModsPresenterManager.StartNewBrowser(25, SortBy.LastUpdates, SortOrder.Descending);
+            ModsBrowsingManager.StartNewBrowser(25, SortBy.LastUpdates, SortOrder.Descending);
         }
         catch (OperationCanceledException)
         {
@@ -177,7 +194,7 @@ public class ModsBrowserViewModel : ViewModelBase
 
             Downloading = true;
             CurrentState = "Requesting entries";
-            await ModsPresenterManager.ExtendEntries(Cancell);
+            await ModsBrowsingManager.ExtendEntries(Cancell);
 
             CurrentState = "Got entries";
             await RequestFullMods();
@@ -211,14 +228,14 @@ public class ModsBrowserViewModel : ViewModelBase
         {
             DownloadingStatus = "Requesting mods...";
 
-            foreach (ModPageEntryInfo modEntry in ModsPresenterManager.LastResults)
+            foreach (ModPageEntryInfo modEntry in ModsBrowsingManager.LastResults)
             {
                 Cancell.ThrowIfCancellationRequested();
 
                 try
                 {
                     CurrentState = "Requesting " + modEntry.ModId;
-                    ModPageFullInfo modInfo = await ModsPresenterManager.FetchFullModInfo(modEntry, Cancell);
+                    ModPageFullInfo modInfo = await ModsBrowsingManager.FetchFullModInfo(modEntry, Cancell);
 
                     if (!FilterModPage(modInfo))
                         continue;
@@ -305,8 +322,13 @@ public class ModsBrowserViewModel : ViewModelBase
                     if (!ViewInitialized)
                         return;
 
-                    Debug.WriteLine("Refresh requested");
                     RefreshModsListCommand.Execute(null);
+                    break;
+                }
+
+            case nameof(NameSearchText):
+                {
+                    SearchTextTimer.Start();
                     break;
                 }
         }
