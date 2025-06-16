@@ -37,14 +37,30 @@
                     </Trigger>
 
                     <Trigger Property="IsPressed" Value="True">
-                        <Setter TargetName="panel" Property="Margin" Value="0,2,0,0"/>
                         <Setter TargetName="panel" Property="Background" Value="#CFDF93"/>
-                        <Setter TargetName="border" Property="BorderThickness" Value="0"/>
                         <Setter TargetName="border" Property="Effect">
                             <Setter.Value>
                                 <DropShadowEffect BlurRadius="5" ShadowDepth="0" Color="#5EB663"/>
                             </Setter.Value>
                         </Setter>
+
+                        <Trigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.1" To="0,2,0,0"/>
+                                    <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.1" To="0"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.EnterActions>
+
+                        <Trigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.5" To="0,0,0,2"/>
+                                    <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.5" To="0,0,0,2"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.ExitActions>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
