@@ -15,9 +15,9 @@
         
         <Button.Template>
             <ControlTemplate TargetType="Button">
-                <local:ClippingBorder x:Name="border" CornerRadius="3" BorderThickness="0,0,0,2" BorderBrush="#1A280B">
+                <local:ClippingBorder x:Name="border" CornerRadius="2" BorderThickness="0,0,0,2" BorderBrush="#1A280B">
                     <local:ClippingBorder.Effect>
-                        <DropShadowEffect BlurRadius="10" ShadowDepth="4" Direction="270" Color="Black"/>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="3" Direction="270" Color="Black"/>
                     </local:ClippingBorder.Effect>
 
                     <Grid x:Name="panel" Background="#5EB663">
@@ -56,7 +56,7 @@
                         <Trigger.ExitActions>
                             <BeginStoryboard>
                                 <Storyboard>
-                                    <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.5" To="0,0,0,2"/>
+                                    <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.5" To="0"/>
                                     <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.5" To="0,0,0,2"/>
                                 </Storyboard>
                             </BeginStoryboard>
