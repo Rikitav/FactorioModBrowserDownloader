@@ -5,6 +5,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
+using System.Windows;
 
 namespace FactorioNexus.Services
 {
@@ -15,6 +17,7 @@ namespace FactorioNexus.Services
         Canceled,
         Timeout,
         Faulted,
+        Extracting,
         Done
     }
 
@@ -25,33 +28,45 @@ namespace FactorioNexus.Services
 
         private static readonly ObservableCollection<DownloadingModEntry> DownloadingModsList = new ObservableCollection<DownloadingModEntry>();
         
-        public static async Task QueueModDownloading(ModPageFullInfo modPage, ReleaseInfo? release = null, CancellationToken cancellationToken = default)
+        public static DownloadingModEntry QueueModDownloading(ModPageFullInfo modPage, ReleaseInfo release, CancellationToken cancellationToken = default)
         {
             try
             {
-                await DownloadingSemaphore.WaitAsync(cancellationToken);
-                DownloadingModEntry entry = new DownloadingModEntry(modPage);
-                
-                DownloadingModsList.Add(entry);
-                using Stream modArchiveStream = await entry.StartDownload(release ?? modPage.DisplayRelease);
-           
-                using ZipArchive zipArchive = new ZipArchive(modArchiveStream);
+                DownloadingModEntry? entry = FindEntry(modPage);
+                if (entry == null)
+                {
+                    entry = new DownloadingModEntry(modPage, release);
+                    QueueModDownloadingEntry(entry, cancellationToken);
+                }
 
-                string extractTo = Path.Combine();
-                zipArchive.ExtractToDirectory(extractTo, true);
+                return entry;
             }
             catch (OperationCanceledException)
             {
-                return;
+                return null;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to download mod");
+                Debug.WriteLine("Failed to download mod {0}. {1}", [modPage.ModId, ex]);
+                throw;
             }
             finally
             {
                 DownloadingSemaphore.Release();
             }
+        }
+
+        private static async void QueueModDownloadingEntry(DownloadingModEntry entry, CancellationToken cancellationToken = default)
+        {
+            DownloadingModsList.Add(entry);
+            await DownloadingSemaphore.WaitAsync(cancellationToken);
+            await entry.StartDownload();
+            DownloadingModsList.Remove(entry);
+        }
+
+        public static DownloadingModEntry? FindEntry(ModPageFullInfo modPage)
+        {
+            return DownloadingModsList.FirstOrDefault(e => e.DownloadingId == modPage.ModId);
         }
     }
 
@@ -60,11 +75,19 @@ namespace FactorioNexus.Services
         private readonly CancellationTokenSource _cancellationSource;
         private readonly RelayCommand _cancellDownloadCommand;
         private readonly ModPageFullInfo _modPageFullInfo;
+        private readonly ReleaseInfo _releaseInfo;
 
         private EntryDownloadingStatus _downloadingStatus;
         private long _downloadingLength = 0;
         private long _downloadingTotal = 0;
         private int _downloadingProgress = 0;
+        private string? _errorMessage = null;
+        private bool _working  = false;
+
+        public string DownloadingId
+        {
+            get => _modPageFullInfo.ModId;
+        }
 
         public EntryDownloadingStatus Status
         {
@@ -90,48 +113,71 @@ namespace FactorioNexus.Services
             private set => Set(ref _downloadingProgress, value);
         }
 
+        public string? ErrorMessage
+        {
+            get => _errorMessage;
+            private set => Set(ref _errorMessage, value);
+        }
+
+        public bool Working
+        {
+            get => _working;
+            private set => Set(ref _working, value);
+        }
+
         public RelayCommand CancellDownloadCommand
         {
             get => _cancellDownloadCommand;
         }
 
-        public DownloadingModEntry(ModPageFullInfo modPageFullInfo)
+        public DownloadingModEntry(ModPageFullInfo modPageFullInfo, ReleaseInfo release)
         {
             _cancellationSource = new CancellationTokenSource();
             _cancellDownloadCommand = new RelayCommand(_ => _cancellationSource.Cancel());
             _modPageFullInfo = modPageFullInfo;
+            _releaseInfo = release;
             Status = EntryDownloadingStatus.Queued;
         }
 
-        public async Task<Stream> StartDownload(ReleaseInfo release)
+        public async Task StartDownload()
         {
             try
             {
+                Working = true;
                 Status = EntryDownloadingStatus.Downloading;
-                Stream stream = await FactorioNexusClient.Instance.DownloadPackage(_modPageFullInfo, release, _cancellationSource.Token);
-                TotalLength = stream.Length;
+                Stream modPackageStream = await FactorioNexusClient.Instance.DownloadPackage(_modPageFullInfo, _releaseInfo, _cancellationSource.Token);
 
-                MemoryStream finalStream = new MemoryStream();
-                await stream.CopyToAsync(finalStream, 1024, bytes => TotalDownloaded = bytes, _cancellationSource.Token);
-               
+                TotalLength = modPackageStream.Length;
+                MemoryStream modArchiveStream = new MemoryStream();
+                await modPackageStream.CopyToAsync(modArchiveStream, 1024, bytes => TotalDownloaded = bytes, _cancellationSource.Token);
+
+                Status = EntryDownloadingStatus.Extracting;
+                using ZipArchive zipArchive = new ZipArchive(modArchiveStream);
+                string extractTo = Path.Combine(ApplicationSettingsManager.Current.GamedataDirectory, "Mods");
+
+                zipArchive.ExtractToDirectory(extractTo, true);
                 Status = EntryDownloadingStatus.Done;
-                return finalStream;
             }
             catch (TimeoutException)
             {
                 Status = EntryDownloadingStatus.Timeout;
-                return Stream.Null;
+                return;
             }
             catch (OperationCanceledException)
             {
                 Status = EntryDownloadingStatus.Canceled;
-                return Stream.Null;
+                return;
             }
             catch (Exception ex)
             {
                 Status = EntryDownloadingStatus.Faulted;
-                Debug.WriteLine("Failed to download mod {0}. {1}", _modPageFullInfo.ModId, ex);
-                return Stream.Null;
+                ErrorMessage = ex.Message;
+                Debug.WriteLine("Failed to download mod {0}. {1}", [_modPageFullInfo.ModId, ex]);
+                return;
+            }
+            finally
+            {
+                Working = false;
             }
         }
 

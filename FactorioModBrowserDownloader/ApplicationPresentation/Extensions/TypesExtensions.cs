@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 
 namespace FactorioNexus.ApplicationPresentation.Extensions
 {
@@ -11,7 +12,7 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
 
             while (true)
             {
-                int bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                int bytesRead = await source.ReadAsync(buffer, cancellationToken);
                 if (bytesRead == 0)
                 {
                     progress?.Invoke(totalBytesRead);
@@ -22,6 +23,26 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
                 totalBytesRead += bytesRead;
                 progress?.Invoke(totalBytesRead);
             }
+        }
+
+        public static string FirstLetterToUpper(this string source)
+        {
+            int index = -1;
+            char target = source.FirstOrDefault(ch =>
+            {
+                index++;
+                return char.IsLetter(ch);
+            });
+
+            if (target == default)
+                return source;
+
+            if (char.IsUpper(target))
+                return source;
+
+            StringBuilder builder = new StringBuilder(source);
+            builder[index] = char.ToUpper(target);
+            return builder.ToString();
         }
     }
 }

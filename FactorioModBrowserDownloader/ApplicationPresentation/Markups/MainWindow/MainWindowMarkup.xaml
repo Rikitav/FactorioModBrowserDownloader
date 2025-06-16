@@ -4,97 +4,28 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FactorioNexus.ApplicationPresentation.Markups.MainWindow"
-        xmlns:converters="clr-namespace:FactorioNexus.ApplicationPresentation.Converters"
         xmlns:controls="clr-namespace:FactorioNexus.ApplicationPresentation.Controls"
-        xmlns:extensions="clr-namespace:FactorioNexus.ApplicationPresentation.Extensions"
-        xmlns:svg="http://sharpvectors.codeplex.com/svgc/"
-        mc:Ignorable="d"
+        xmlns:browser="clr-namespace:FactorioNexus.ApplicationPresentation.Markups.ModsBrowser"
+        mc:Ignorable="d" FontFamily="pack://application:,,,/Fonts/#Titillium Web"
         Title="Factorio NEXUS" Height="900" Width="1200" x:Name="this">
     <Window.DataContext>
         <local:MainWindowViewModel/>
     </Window.DataContext>
 
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/ApplicationPresentation/Markups/MainWindow/MainWindowResources.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
-
     <Grid>
-        <Border x:Name="debugBorder" Visibility="Visible"
-                VerticalAlignment="Top" HorizontalAlignment="Right"
-                Background="Gray" Panel.ZIndex="1"
-                Width="300" Margin="0,40,40,0" Opacity="0.8"
-                CornerRadius="5" IsHitTestVisible="True">
 
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Trigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.2" To="0.3"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.EnterActions>
-
-                            <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="Opacity"
-                                            Duration="0:0:0.2" To="0.8"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.ExitActions>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
+        <!-- Debug panel that shows some properties of current ViewModel -->
+        <controls:ViewModelDebugPanel
+            DataContext="{Binding DataContext, ElementName=browser}"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            Panel.ZIndex="1" 
+            IsHitTestVisible="True"/>
+        
+        <!-- An outer body of window. Used for cool background and long pages displaying -->
+        <ScrollViewer x:Name="scroll" ScrollChanged="ScrollChanged">
             
-            <Border.Resources>
-                <Style TargetType="GroupBox">
-                    <Setter Property="BorderThickness" Value="1"/>
-                    <Setter Property="BorderBrush" Value="White"/>
-                    <Setter Property="Margin" Value="5,5,5,0"/>
-                </Style>
-            </Border.Resources>
-
-            <StackPanel Margin="0,0,0,5">
-                <GroupBox Header="State">
-                    <StackPanel>
-                        <Label Content="{Binding Downloading}" ContentStringFormat="Downloading : {0}"/>
-                        <Label Content="{Binding DownloadingStatus}" ContentStringFormat="DownloadingStatus : {0}"/>
-                        <Label Content="{Binding CurrentState}" ContentStringFormat="CurrentState : {0}"/>
-                        <Label Content="{Binding IsCriticalError}" ContentStringFormat="IsCriticalError : {0}"/>
-                    </StackPanel>
-                </GroupBox>
-                
-                <GroupBox Header="Mods">
-                    <StackPanel>
-                        <Label Content="{Binding DisplayModsList.Count}" ContentStringFormat="DisplayModsList.Count : {0}"/>
-                        <Label Content="{Binding ModsEntries.Count}" ContentStringFormat="ModsEntries.Count : {0}"/>
-                        <Label Content="{Binding CachedMods.Count}" ContentStringFormat="CachedMods.Count : {0}"/>
-                    </StackPanel>
-                </GroupBox>
-                
-                <GroupBox Header="Scrollable">
-                    <StackPanel>
-                        <Label Content="{Binding ScrollableHeight, ElementName=scroll}" ContentStringFormat="scroll.ScrollableHeight : {0}"/>
-                        <Label Content="{Binding VerticalOffset, ElementName=scroll}" ContentStringFormat="scroll.VerticalOffset : {0}"/>
-                        <Label Content="{Binding RequireListExtending}" ContentStringFormat="RequireListExtending : {0}"/>
-                    </StackPanel>
-                </GroupBox>
-
-            </StackPanel>
-        </Border>
-
-        <ScrollViewer x:Name="scroll" ScrollChanged="scroll_ScrollChanged">
+            <!-- Tiling Factorio-themed background -->
             <ScrollViewer.Background>
                 <ImageBrush
                     ImageSource="/ApplicationPresentation/Markups/MainWindow/background.jpg"
@@ -106,126 +37,28 @@
                     RenderOptions.EdgeMode="Aliased"/>
             </ScrollViewer.Background>
 
+            <!-- An inner body of window -->
             <Grid>
+
+                <!-- Factorio logo, cuz cool -->
                 <Image Source="/ApplicationPresentation/Markups/MainWindow/factorio.png" Height="70" Margin="100,30,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <Grid MaxWidth="1300" Margin="100,150,100,100" HorizontalAlignment="Stretch" Background="#313031">
+                
+                <!-- A main functional body of window -->
+                <TabControl MaxWidth="1300" Margin="100,150,100,100" HorizontalAlignment="Stretch" Background="#313031">
+                
+                    <!-- Mods browser tab -->
+                    <TabItem>
+                        <TabItem.Header>
+                            <TextBlock Text="Browse mods"/>
+                        </TabItem.Header>
 
-                    <DockPanel>
-                        <!--StackPanel DockPanel.Dock="Top" Orientation="Horizontal" FlowDirection="RightToLeft">
-                            <Button Height="30" Width="100" Content="Highlited mods"/>
-                            <Button Height="30" Width="100" Content="Recently updated"/>
-                            <Button Height="30" Width="100" Content="Most downloaded"/>
-                            <Button Height="30" Width="100" Content="Trending"/>
-                        </StackPanel-->
-
-                        <controls:ClippingBorder DockPanel.Dock="Top" Height="40" CornerRadius="2" Background="#242324" Margin="10,10,10,0">
-                            <Grid>
-                                <controls:ShadowOverlayBorder/>
-                                <controls:ClippingBorder CornerRadius="5" Margin="6,6,100,6" Background="#F0DAB4">
-                                    <Grid>
-                                        <controls:ShadowOverlayBorder Panel.ZIndex="2"/>
-                                        <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding Text, ElementName=searchBox, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                                        <TextBox x:Name="searchBox" Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20"/>
-                                    </Grid>
-                                </controls:ClippingBorder>
-
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,6,6">
-                                    <Button Width="30" Command="{Binding RefreshModsListCommand}"/>
-                                </StackPanel>
-                            </Grid>
-                        </controls:ClippingBorder>
-
-                        <controls:ClippingBorder DockPanel.Dock="Left" CornerRadius="2" Width="200" Margin="10,10,0,10">
-                            <Grid>
-                                <controls:ShadowOverlayBorder Panel.ZIndex="1"/>
-                                <StackPanel Background="#242324">
-                                    
-                                    <StackPanel.Resources>
-                                        <Style TargetType="GroupBox">
-                                            <Setter Property="BorderThickness" Value="0"/>
-                                            <Setter Property="HeaderTemplate">
-                                                <Setter.Value>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=GroupBox}}" FontSize="17" Foreground="#FFE6C0" Margin="0,5,0,10"/>
-                                                    </DataTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </StackPanel.Resources>
-
-                                    <GroupBox Tag="Categories">
-                                        <ItemsControl ItemsSource="{Binding CategorySelections, Mode=OneWay}" Margin="5,0,0,0">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-
-                                                    <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Height="25" Command="{Binding Command}" Style="{DynamicResource VintageCheckBoxStyle}">
-                                                        <Label Content="{Binding Value.Title, Mode=OneWay}" FontSize="15" Margin="0,-3,0,0" Foreground="White"/>
-                                                    </CheckBox>
-
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </GroupBox>
-
-                                    <GroupBox Tag="Tags">
-                                        <ItemsControl ItemsSource="{Binding TagSelections, Mode=OneWay}" Margin="5,0,0,0">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-
-                                                    <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Height="25" Command="{Binding Command}" Style="{DynamicResource VintageCheckBoxStyle}">
-                                                        <Label Content="{Binding Value.Title, Mode=OneWay}" FontSize="15" Margin="0,-3,0,0" Foreground="White"/>
-                                                    </CheckBox>
-
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </GroupBox>
-
-                                    <GroupBox Tag="Factorio version">
-                                        <StackPanel Margin="5,0,0,0">
-                                            <ComboBox ItemsSource="{Binding GameVersionSelections}" SelectedValue="{Binding SelectedGameVersion}" SelectedIndex="8" Margin="0,0,10,0"/>
-                                            <CheckBox IsChecked="{Binding IncludeDeprecatedMods}" Margin="0,5,0,0" Command="{Binding RefreshModsListCommand}">
-                                                <Label Content="Include deprecated mods" Margin="0,-5,0,5" Foreground="White"/>
-                                            </CheckBox>
-                                        </StackPanel>
-                                    </GroupBox>
-                                </StackPanel>
-                            </Grid>
-                        </controls:ClippingBorder>
-
-                        <Grid>
-                            <TextBlock x:Name="errorTextBlock" Visibility="{Binding IsCriticalError, Converter={converters:BooleanToVisibilityConverter}}" TextWrapping="WrapWithOverflow" Margin="30">
-                            <Run Text="Application's runtime was interupted by critical error message" Foreground="White"/>
-                            <LineBreak/>
-                            <LineBreak/>
-                            <Run Text="{Binding CriticalErrorMessage, Mode=OneWay}" Foreground="White"/>
-                            </TextBlock>
-
-                            <StackPanel>
-                                <ItemsControl ItemsSource="{Binding DisplayModsList}" HorizontalAlignment="Stretch" Visibility="{Binding IsCriticalError, Converter={converters:BooleanToVisibilityConverter}, ConverterParameter={extensions:True}}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-
-                                            <controls:ClippingBorder CornerRadius="2">
-                                                <Grid Margin="10,10,10,0">
-                                                    <controls:ShadowOverlayBorder Panel.ZIndex="1" Focusable="False"/>
-                                                    <controls:ModPagePresenter/>
-                                                </Grid>
-                                            </controls:ClippingBorder>
-
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="{Binding Downloading, Converter={converters:BooleanToVisibilityConverter}}">
-                                    <controls:LoadingIndicatorControl Margin="10" Width="30" Height="30" IndicatorBackground="#FF000000" IndicatorForeground="#8E2B00" VerticalAlignment="Center"/>
-                                    <Label Content="{Binding DownloadingStatus}" VerticalContentAlignment="Center" Foreground="White"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Grid>
-                    </DockPanel>
-                </Grid>
+                        <browser:ModsBrowserPageMarkup x:Name="browser"/>
+                    </TabItem>
+                
+                </TabControl>
+                
             </Grid>
         </ScrollViewer>
     </Grid>
+    
 </Window>

@@ -15,8 +15,9 @@
         <DockPanel DockPanel.Dock="Bottom" LastChildFill="False" Height="50" Background="#242324">
             
             <!-- Downloading options -->
-            <Button DockPanel.Dock="Right" Content="Download" Margin="6" Width="100"/>
-            
+            <!--Button x:Name="DownloadButton" DockPanel.Dock="Right" Content="Download" Margin="6" Width="100" Click="DownloadButton_Click"/-->
+            <local:ModDownloadingButton DockPanel.Dock="Right" Margin="6,6,6,10" ModPage="{Binding}" Width="150"/>
+
             <!-- Tags list -->
             <ItemsControl DockPanel.Dock="Left" ItemsSource="{Binding Tags}" Margin="10,10,0,10">
                 <ItemsControl.ItemsPanel>
@@ -56,7 +57,7 @@
         <!-- Mod name, owner and description -->
         <StackPanel Margin="3,13,10,10">
             <TextBlock FontWeight="Bold">
-                <Run Text="{Binding Title}" FontSize="20" Foreground="#fce3be"/>
+                <Run Text="{Binding Title}" FontWeight="Bold" FontSize="20" Foreground="#fce3be"/>
                 <LineBreak/>
                 <Run Text="   by " Foreground="#ffffff" FontSize="13"/>
                 <Run Text="{Binding OwnerName}" Foreground="DarkOrange" FontSize="13"/>

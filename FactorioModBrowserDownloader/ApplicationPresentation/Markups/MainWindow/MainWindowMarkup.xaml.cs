@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using FactorioNexus.ApplicationPresentation.Extensions;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
@@ -13,13 +14,16 @@ namespace FactorioNexus.ApplicationPresentation.Markups.MainWindow
             InitializeComponent();
         }
 
-        private void scroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        public void ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            ScrollViewer scroll = (ScrollViewer)sender;
-            MainWindowViewModel model = (MainWindowViewModel)DataContext;
+            browser.ScrollChanged(sender, e);
+        }
 
-            double delta = scroll.ScrollableHeight - scroll.ContentVerticalOffset;
-            model.RequireListExtending = delta < 500;
+        protected override void OnInitialized(EventArgs e)
+        {
+            base.OnInitialized(e);
+            ViewModelBase model = (ViewModelBase)DataContext;
+            model.ViewInitialized = true;
         }
     }
 }

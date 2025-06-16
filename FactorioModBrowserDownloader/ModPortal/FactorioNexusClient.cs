@@ -96,7 +96,7 @@ namespace FactorioNexus.ModPortal
         public async Task<BitmapSource> DownloadThumbnail(ModPageShortInfo modPage, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(modPage.Thumbnail))
-                throw new ArgumentException("Cannot download thumbnail for mod page without thumbnail", nameof(modPage.Thumbnail));
+                throw new ArgumentException("Cannot download thumbnail for mod page without thumbnail", nameof(modPage));
 
             try
             {
@@ -117,7 +117,7 @@ namespace FactorioNexus.ModPortal
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to download the thumbnail for {0}. {1}", modPage.ModId, ex);
+                Debug.WriteLine("Failed to download the thumbnail for {0}. {1}", [modPage.ModId, ex]);
                 throw;
             }
         }
@@ -132,7 +132,7 @@ namespace FactorioNexus.ModPortal
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to download the thumbnail for {0}. {1}", modPage.ModId, ex);
+                Debug.WriteLine("Failed to download the thumbnail for {0}. {1}", [modPage.ModId, ex]);
                 throw;
             }
         }
@@ -186,9 +186,8 @@ namespace FactorioNexus.ModPortal
                 RequestUri = new Uri(requestUri)
             };
 
-            using HttpResponseMessage responseMessage = await SendRequest(requestMessage, cancellationToken);
+            HttpResponseMessage responseMessage = await SendRequest(requestMessage, cancellationToken);
             responseMessage.EnsureSuccessStatusCode();
-
             return await responseMessage.Content.ReadAsStreamAsync(cancellationToken);
         }
 
@@ -207,6 +206,7 @@ namespace FactorioNexus.ModPortal
             isDisposed = true;
         }
 
+        /*
         private static class NativeMethods
         {
             public enum InternetConnectionState
@@ -233,7 +233,7 @@ namespace FactorioNexus.ModPortal
                 // Checking for any internet devices is active
                 if (!InternetGetConnectedState(out InternetConnectionState state, 0))
                 {
-                    Debug.WriteLine("No internet devices online, state : {0}", state);
+                    Debug.WriteLine("No internet devices online, state : {0}", [state]);
                     return false;
                 }
 
@@ -248,5 +248,6 @@ namespace FactorioNexus.ModPortal
                 return true;
             }
         }
+        */
     }
 }

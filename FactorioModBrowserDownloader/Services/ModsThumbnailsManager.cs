@@ -50,14 +50,14 @@ namespace FactorioNexus.Services
                 if (await TryDownloadThumbnail(modPage, cancellationToken))
                     return;
             }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to get thumbnail image for {0}. {1}", [modPage.ModId, ex]);
+                throw new FailedThumbnailException();
+            }
             finally
             {
-                if (modPage.DisplayThumbnail == null)
-                {
-                    Debug.WriteLine("Failed to get thumbnail image for " + modPage.ModId);
-                    throw new FailedThumbnailException();
-                }
-                else
+                if (modPage.DisplayThumbnail != null)
                 {
                     MemoryThumbnailCache(modPage, modPage.DisplayThumbnail);
                     SaveThumbnailCache(modPage, cachedThumbnailPath, modPage.DisplayThumbnail);
@@ -71,29 +71,30 @@ namespace FactorioNexus.Services
             {
                 lock (SyncObj)
                 {
-                    using (FileStream fileStream = File.OpenRead(cachePath))
-                    {
-                        BitmapImage openedImage = new BitmapImage();
+                    if (!IsThumbnailCached(cachePath))
+                        return false;
 
-                        // Copying from filestream
-                        openedImage.BeginInit();
-                        openedImage.StreamSource = new MemoryStream();
-                        fileStream.CopyTo(openedImage.StreamSource);
-                        openedImage.EndInit();
+                    using FileStream fileStream = File.OpenRead(cachePath);
+                    BitmapImage openedImage = new BitmapImage();
 
-                        // Setting as used display
-                        modPage.DisplayThumbnail = openedImage;
+                    // Copying from filestream
+                    openedImage.BeginInit();
+                    openedImage.StreamSource = new MemoryStream();
+                    fileStream.CopyTo(openedImage.StreamSource);
+                    openedImage.EndInit();
 
-                        // Debug message
-                        Debug.WriteLine("Thumbnail for " + modPage.ModId + " was restored from cached thumbnails");
-                        return true;
-                    }
+                    // Setting as used display
+                    modPage.DisplayThumbnail = openedImage;
+
+                    // Debug message
+                    Debug.WriteLine("Thumbnail for {0} was restored from cached thumbnails", [modPage.ModId]);
+                    return true;
                 }
             }
             catch (Exception ex)
             {
                 // Something went wrong during thumbnail loading
-                Debug.WriteLine("Failed to cache thumbnail image to file for " + modPage.ModId, ex);
+                Debug.WriteLine("Failed to cache thumbnail image to file for {0}. {1}", [modPage.ModId, ex]);
                 return false;
             }
         }
@@ -104,16 +105,16 @@ namespace FactorioNexus.Services
             {
                 // Downloading thumbnail from Factorio's assets server
                 await DownloadingSemaphore.WaitAsync(cancellationToken);
-                modPage.DisplayThumbnail = await FactorioNexusClient.Instance.DownloadThumbnail(modPage);
+                modPage.DisplayThumbnail = await FactorioNexusClient.Instance.DownloadThumbnail(modPage, cancellationToken);
 
                 // Debug message
-                Debug.WriteLine("Thumbnail for " + modPage.ModId + " was downloaded from assets server");
+                Debug.WriteLine("Thumbnail for {0} was downloaded from assets server", [modPage.ModId]);
                 return true;
             }
             catch (Exception ex)
             {
                 // Something went wrong during thumbnail loading
-                Debug.WriteLine("Failed to download thumbnail image for " + modPage.ModId, ex);
+                Debug.WriteLine("Failed to download thumbnail image for {0}. {1}", [modPage.ModId, ex]);
                 return false;
             }
             finally
@@ -139,7 +140,7 @@ namespace FactorioNexus.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to cache thumbnail image to file for " + modPage.ModId, ex);
+                Debug.WriteLine("Failed to cache thumbnail image to file for {0}. {1}", [modPage.ModId, ex]);
             }
         }
 
@@ -158,7 +159,7 @@ namespace FactorioNexus.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to cache thumbnail image to memory for " + modPage.ModId, ex);
+                Debug.WriteLine("Failed to cache thumbnail image to memory for {0}. {1}", [modPage.ModId, ex]);
             }
         }
 

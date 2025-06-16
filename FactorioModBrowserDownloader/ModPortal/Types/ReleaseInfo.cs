@@ -32,7 +32,7 @@ namespace FactorioNexus.ModPortal.Types
         /// The version string of this mod release. Used to determine dependencies.
         /// </summary>
         [JsonPropertyName("version"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-        public Version? Version { get; set; }
+        public required Version Version { get; set; }
 
         /// <summary>
         /// The sha1 key for the file 

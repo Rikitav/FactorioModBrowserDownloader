@@ -1,4 +1,5 @@
-﻿using FactorioNexus.ModPortal.Types;
+﻿using FactorioNexus.ApplicationPresentation.Extensions;
+using FactorioNexus.ModPortal.Types;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -15,7 +16,10 @@ namespace FactorioNexus.ModPortal.Converters
             if (string.IsNullOrEmpty(value))
                 return CategoryInfo.Known.ElementAt(0).Value; // "no-category"
 
-            return CategoryInfo.Known[value];
+            if (!CategoryInfo.Known.TryGetValue(value, out CategoryInfo? category))
+                category = new CategoryInfo(value, value.FirstLetterToUpper(), value);
+
+            return category;
         }
 
         public override void Write(Utf8JsonWriter writer, CategoryInfo value, JsonSerializerOptions options) => throw new NotImplementedException();

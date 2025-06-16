@@ -45,6 +45,8 @@ namespace FactorioNexus.Services
         public static void StartNewBrowser(int? pageSize, SortBy? sortBy = null, SortOrder? sortOrder = null)
         {
             Entries.Clear();
+            LastList = null;
+
             LastListRequest = new GetPortalModsListRequest()
             {
                 PageIndex = 0,
@@ -65,7 +67,7 @@ namespace FactorioNexus.Services
                 Downloading = true;
                 LastListRequest.PageIndex++;
 
-                Debug.WriteLine("Extending mod entries. Current page : {0}", LastListRequest.PageIndex);
+                Debug.WriteLine("Extending mod entries. Current page : {0}", [LastListRequest.PageIndex]);
                 LastList = await FactorioNexusClient.Instance.SendRequest(LastListRequest, cancellationToken);
 
                 if (LastList.Results is null)
@@ -74,7 +76,7 @@ namespace FactorioNexus.Services
                     throw new Exception("Extending failed. Returned null entries.");
                 }
 
-                Debug.WriteLine("Extending successfull. GFathered {0} mods", LastList.Results.Length);
+                Debug.WriteLine("Extending successfull. GFathered {0} mods", [LastList.Results.Length]);
                 _modEntries.AddRange(LastList.Results);
             }
             catch (OperationCanceledException)
@@ -89,7 +91,7 @@ namespace FactorioNexus.Services
                 LastListRequest.PageIndex--;
                 LastList = null;
 
-                Debug.WriteLine("Failed to extend mods entries. {0}", ex);
+                Debug.WriteLine("Failed to extend mods entries. {0}", [ex]);
                 throw;
             }
             finally
@@ -100,12 +102,6 @@ namespace FactorioNexus.Services
 
         public static async Task<ModPageFullInfo> FetchFullModInfo(ModPageEntryInfo modEntry, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(modEntry.ModId))
-            {
-                Debug.WriteLine("ModId is empty");
-                throw new ArgumentException("ModId cannot be empty", nameof(modEntry.ModId));
-            }
-
             if (Cached.TryGetValue(modEntry.ModId, out ModPageFullInfo? fullMod))
             {
                 Debug.WriteLine("ModPageFullInfo was restored from cached mods");
@@ -114,16 +110,16 @@ namespace FactorioNexus.Services
 
             try
             {
-                Debug.WriteLine("Requesting {0} modId", modEntry.ModId);
+                Debug.WriteLine("Requesting {0} modId", [modEntry.ModId]);
                 fullMod = await FactorioNexusClient.Instance.SendRequest(new GetFullModInfoRequest(modEntry.ModId), cancellationToken);
 
-                Debug.WriteLine("ModId {0} cached", modEntry.ModId);
+                Debug.WriteLine("ModId {0} cached", [modEntry.ModId]);
                 _cachedMods.TryAdd(modEntry.ModId, fullMod);
                 return fullMod;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("failed to cache {0}. {1}", modEntry.ModId, ex);
+                Debug.WriteLine("failed to cache {0}. {1}", [modEntry.ModId, ex]);
                 throw;
             }
         }

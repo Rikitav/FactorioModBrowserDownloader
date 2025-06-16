@@ -1,4 +1,5 @@
-﻿using FactorioNexus.ModPortal.Types;
+﻿using FactorioNexus.ApplicationPresentation.Extensions;
+using FactorioNexus.ModPortal.Types;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -25,7 +26,10 @@ namespace FactorioNexus.ModPortal.Converters
                 if (string.IsNullOrEmpty(value))
                     throw new JsonException();
 
-                tags.Add(TagInfo.Known[value]);
+                if (!TagInfo.Known.TryGetValue(value, out TagInfo? tag))
+                    tag = new TagInfo(null, value, value.FirstLetterToUpper(), value);
+
+                tags.Add(tag);
             }
 
             return tags.ToArray();

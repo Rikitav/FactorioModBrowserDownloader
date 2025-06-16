@@ -44,31 +44,28 @@ namespace FactorioNexus.Services
                     File.Delete(configFilePath); // Deleting if exists
 
                 // Creating new config file
-                using (StreamWriter configWriter = File.CreateText(configFilePath))
+                using StreamWriter configWriter = File.CreateText(configFilePath);
+                foreach (PropertyInfo property in Current.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
                 {
-                    // Enumerating container's properties
-                    foreach (PropertyInfo property in Current.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                    try
                     {
-                        try
-                        {
-                            // Checking if property has value
-                            if (!Current.HasValue(property.Name))
-                                continue;
-
-                            // Getting value to write
-                            object? value = property.GetValue(Current, null);
-                            if (value == null)
-                                continue;
-
-                            // Formatting and writing value
-                            string formatedLine = string.Format("{0} = {1}", property.Name, value);
-                            configWriter.WriteLine(formatedLine);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine("Failed to write property {0}. {1}", property.Name, ex);
+                        // Checking if property has value
+                        if (!Current.HasValue(property.Name))
                             continue;
-                        }
+
+                        // Getting value to write
+                        object? value = property.GetValue(Current, null);
+                        if (value == null)
+                            continue;
+
+                        // Formatting and writing value
+                        string formatedLine = string.Format("{0} = {1}", property.Name, value);
+                        configWriter.WriteLine(formatedLine);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine("Failed to write property {0}. {1}", [property.Name, ex]);
+                        continue;
                     }
                 }
             }
@@ -113,7 +110,7 @@ namespace FactorioNexus.Services
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine("Faile to parse line {0}. {1}", line, ex);
+                        Debug.WriteLine("Faile to parse line {0}. {1}", [line, ex]);
                         continue;
                     }
                 }
@@ -133,19 +130,19 @@ namespace FactorioNexus.Services
 
     public class SettingsContainer : ViewModelBase
     {
-        private static readonly string _modsDirectory_Default = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Factorio", "Mods");
+        private static readonly string _gamedataDirectory_Default = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Factorio");
 
-        private string? _modsDirectory = null;
+        private string? _gamedataDirectory = null;
 
-        public string ModsDirectory
+        public string GamedataDirectory
         {
-            get => _modsDirectory ?? _modsDirectory_Default;
-            set => Set(ref _modsDirectory, value);
+            get => _gamedataDirectory ?? _gamedataDirectory_Default;
+            set => Set(ref _gamedataDirectory, value);
         }
 
         public bool HasValue(string propertyValue) => null != (propertyValue switch
         {
-            nameof(ModsDirectory) => _modsDirectory,
+            nameof(GamedataDirectory) => _gamedataDirectory,
             _ => null
         });
     }

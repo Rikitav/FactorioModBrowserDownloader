@@ -1,5 +1,6 @@
 ﻿using FactorioNexus.ModPortal.Converters;
 using System.Text.Json.Serialization;
+using System.Windows.Input;
 
 namespace FactorioNexus.ModPortal.Types
 {
@@ -70,5 +71,11 @@ namespace FactorioNexus.ModPortal.Types
         /// </summary>
         [JsonPropertyName("deprecated"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public bool? Deprecated { get; set; }
+
+        /// <summary>
+        /// Command to download
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+        public ICommand? DownloadCommand { get; set; }
     }
 }

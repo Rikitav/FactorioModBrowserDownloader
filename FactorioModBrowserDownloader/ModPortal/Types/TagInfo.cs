@@ -1,9 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace FactorioNexus.ModPortal.Types
 {
     public class TagInfo
     {
+        public static readonly IEqualityComparer<TagInfo> Comparer = new TagInfoComparer();
+
         /// <summary>
         /// Id of tag
         /// </summary>
@@ -64,5 +67,19 @@ namespace FactorioNexus.ModPortal.Types
             { "trains", new TagInfo(29, "trains", "Trains", "Trains are great, but what if they could do even more? ") },
             { "planets", new TagInfo(null, "planets", "Planets", "More horizons to explore!") },
         };
+
+        private class TagInfoComparer : IEqualityComparer<TagInfo>
+        {
+            public bool Equals(TagInfo? left, TagInfo? right)
+            {
+                if (left is null | right is null)
+                    return left == null && right == null;
+
+                return left.Name.Equals(right.Name);
+            }
+
+            public int GetHashCode([DisallowNull] TagInfo obj)
+                => obj.Name.GetHashCode();
+        }
     }
 }

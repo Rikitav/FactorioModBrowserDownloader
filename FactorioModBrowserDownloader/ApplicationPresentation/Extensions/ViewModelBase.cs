@@ -5,6 +5,14 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
 {
     public abstract class ViewModelBase : INotifyPropertyChanged
     {
+        private bool _viewInitialized = false;
+
+        public bool ViewInitialized
+        {
+            get => _viewInitialized;
+            set => Set(ref _viewInitialized, value);
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void Set<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
@@ -13,7 +21,7 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
                 return;
 
             field = value;
-            NotifyPropertyChanged(propertyName);
+            RaisePropertyChanged(propertyName);
             OnPropertyChanged(propertyName);
         }
 
@@ -23,11 +31,11 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
                 return;
 
             action.Invoke();
-            NotifyPropertyChanged(propertyName);
+            RaisePropertyChanged(propertyName);
             OnPropertyChanged(propertyName);
         }
 
-        protected void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
+        protected void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

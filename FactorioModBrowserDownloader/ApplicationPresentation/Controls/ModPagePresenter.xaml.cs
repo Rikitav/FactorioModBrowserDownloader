@@ -1,5 +1,6 @@
 ﻿using FactorioNexus.ModPortal;
 using FactorioNexus.ModPortal.Types;
+using FactorioNexus.Services;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;

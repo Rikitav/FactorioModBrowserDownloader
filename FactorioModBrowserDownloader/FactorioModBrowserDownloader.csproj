@@ -10,18 +10,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\clock-rotate-left.svg" />
-    <None Remove="Resources\cubes.svg" />
-    <None Remove="Resources\download.svg" />
-    <None Remove="Resources\factorio.png" />
-    <None Remove="Resources\gear.svg" />
-    <None Remove="Resources\TitilliumWeb.ttf" />
+    <None Remove="Fonts\clock-rotate-left.svg" />
+    <None Remove="Fonts\cubes.svg" />
+    <None Remove="Fonts\download.svg" />
+    <None Remove="Fonts\factorio.png" />
+    <None Remove="Fonts\gear.svg" />
+    <None Remove="Fonts\TitilliumWeb-Bold.ttf" />
   </ItemGroup>
 
   <ItemGroup>
 	  <Resource Include="ApplicationPresentation\Markups\MainWindow\background.jpg" />
 	  <Resource Include="ApplicationPresentation\Markups\MainWindow\factorio.png" />
-	  <EmbeddedResource Include="Resources\TitilliumWeb.ttf" />
+	  <Resource Include="Fonts\TitilliumWeb-Bold.ttf" />
+	  <Resource Include="Fonts\TitilliumWeb-Regular.ttf" />
   </ItemGroup>
 
   <ItemGroup>

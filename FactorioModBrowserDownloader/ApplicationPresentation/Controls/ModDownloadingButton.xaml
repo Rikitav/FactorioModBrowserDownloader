@@ -1,0 +1,53 @@
+﻿<UserControl x:Class="FactorioNexus.ApplicationPresentation.Controls.ModDownloadingButton"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FactorioNexus.ApplicationPresentation.Controls"
+             xmlns:converters="clr-namespace:FactorioNexus.ApplicationPresentation.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="38" d:DesignWidth="150" x:Name="this">
+
+    <Button Click="DownloadButton_Click">
+        <Button.Content>
+            <TextBlock Foreground="Black" FontFamily="pack://application:,,,/Fonts/#Titillium Web" FontSize="15" Text="{Binding DownloadEntry.Status, ElementName=this, FallbackValue=Download, TargetNullValue=Download}"/>
+        </Button.Content>
+        
+        <Button.Template>
+            <ControlTemplate TargetType="Button">
+                <local:ClippingBorder x:Name="border" CornerRadius="3" BorderThickness="0,0,0,2" BorderBrush="#1A280B">
+                    <local:ClippingBorder.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="4" Direction="270" Color="Black"/>
+                    </local:ClippingBorder.Effect>
+
+                    <Grid x:Name="panel" Background="#5EB663">
+                        <local:ShadowOverlayBorder Panel.ZIndex="1"/>
+                        <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource Mode=TemplatedParent}}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Grid>
+                </local:ClippingBorder>
+
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="panel" Property="Background" Value="#92E897"/>
+                        <Setter TargetName="border" Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#5EB663"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter TargetName="panel" Property="Margin" Value="0,2,0,0"/>
+                        <Setter TargetName="panel" Property="Background" Value="#CFDF93"/>
+                        <Setter TargetName="border" Property="BorderThickness" Value="0"/>
+                        <Setter TargetName="border" Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect BlurRadius="5" ShadowDepth="0" Color="#5EB663"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+</UserControl>

@@ -1,9 +1,12 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace FactorioNexus.ModPortal.Types
 {
     public class CategoryInfo
     {
+        public static readonly IEqualityComparer<CategoryInfo> Comparer = new CategoryInfoComparer();
+
         /// <summary>
         /// Inner name of category
         /// </summary>
@@ -48,5 +51,19 @@ namespace FactorioNexus.ModPortal.Types
             { "localizations", new CategoryInfo("localizations", "Localizations", "Translations for other mods.") },
             { "internal", new CategoryInfo("internal", "Internal", "Lua libraries for use by other mods and submods that are parts of a larger mod. ") }
         };
+
+        private class CategoryInfoComparer : IEqualityComparer<CategoryInfo>
+        {
+            public bool Equals(CategoryInfo? left, CategoryInfo? right)
+            {
+                if (left is null | right is null)
+                    return left == null && right == null;
+
+                return left.Name.Equals(right.Name);
+            }
+
+            public int GetHashCode([DisallowNull] CategoryInfo obj)
+                => obj.Name.GetHashCode();
+        }
     }
 }
