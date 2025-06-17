@@ -3,27 +3,42 @@ using System.Windows.Controls;
 
 namespace FactorioNexus.ApplicationPresentation.Controls
 {
-    /// <summary>
-    /// Логика взаимодействия для ShadowOverlayBorder.xaml
-    /// </summary>
     public partial class ShadowOverlayBorder : UserControl
     {
-        /// <summary>
-        /// Gets or sets additional content for the UserControl
-        /// </summary>
-        public object AdditionalContent
+        public double CornerRadius
         {
-            get { return GetValue(AdditionalContentProperty); }
-            set { SetValue(AdditionalContentProperty, value); }
+            get => (double)GetValue(CornerRadiusProperty);
+            set => SetValue(CornerRadiusProperty, value);
+        }
+
+        public double ShadowDirection
+        {
+            get => (double)GetValue(ShadowDirectionProperty);
+            set => SetValue(ShadowDirectionProperty, value);
+        }
+
+        public double ShadowDepth
+        {
+            get => (double)GetValue(ShadowDepthProperty);
+            set => SetValue(ShadowDepthProperty, value);
         }
 
         public ShadowOverlayBorder()
         {
             InitializeComponent();
+            //DataContext = this;
         }
 
-        public static readonly DependencyProperty AdditionalContentProperty = DependencyProperty.Register(
-            "AdditionalContent", typeof(object), typeof(ShadowOverlayBorder),
-            new PropertyMetadata(null));
+        public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.Register(
+            nameof(CornerRadius), typeof(object), typeof(ShadowOverlayBorder),
+            new PropertyMetadata(0d));
+
+        public static readonly DependencyProperty ShadowDirectionProperty = DependencyProperty.Register(
+            nameof(ShadowDirection), typeof(object), typeof(ShadowOverlayBorder),
+            new PropertyMetadata(0d));
+
+        public static readonly DependencyProperty ShadowDepthProperty = DependencyProperty.Register(
+            nameof(ShadowDepth), typeof(object), typeof(ShadowOverlayBorder),
+            new PropertyMetadata(0d));
     }
 }

@@ -15,74 +15,69 @@
     </UserControl.DataContext>
     
     <DockPanel>
-        <controls:ClippingBorder DockPanel.Dock="Top" Height="40" CornerRadius="5" Background="#242324" Margin="10,10,10,0">
+        <controls:ShadowOverlayBorder DockPanel.Dock="Top" Height="40" CornerRadius="5" Background="#242324" Margin="10,10,10,0">
             <Grid>
-                <controls:ShadowOverlayBorder/>
-                <controls:ClippingBorder CornerRadius="5" Margin="6,6,100,6" Background="#F0DAB4">
+                <controls:ShadowOverlayBorder CornerRadius="5" Margin="6,6,100,6" Background="#F0DAB4">
                     <Grid>
-                        <controls:ShadowOverlayBorder Panel.ZIndex="2"/>
-                        <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding Text, ElementName=searchBox, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                        <TextBox x:Name="searchBox" Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText, Mode=OneWayToSource}"/>
+                        <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding NameSearchText, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
+                        <TextBox Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText, Mode=OneWayToSource}"/>
                     </Grid>
-                </controls:ClippingBorder>
+                </controls:ShadowOverlayBorder>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,6,6">
                     <Button Width="30" Command="{Binding RefreshModsListCommand}"/>
                 </StackPanel>
             </Grid>
-        </controls:ClippingBorder>
+        </controls:ShadowOverlayBorder>
 
-        <controls:ClippingBorder DockPanel.Dock="Left" CornerRadius="5" Width="200" Margin="10,10,0,10">
-            <Grid>
-                <controls:ShadowOverlayBorder Panel.ZIndex="1"/>
-                <StackPanel Background="#242324">
+        <controls:ShadowOverlayBorder DockPanel.Dock="Left" CornerRadius="5" Width="200" Margin="10,10,0,10">
+            <StackPanel Background="#242324">
 
-                    <StackPanel.Resources>
-                        <Style TargetType="GroupBox">
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="HeaderTemplate">
-                                <Setter.Value>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=GroupBox}}" FontSize="17" Foreground="#FFE6C0" Margin="0,5,0,10"/>
-                                    </DataTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
+                <StackPanel.Resources>
+                    <Style TargetType="GroupBox">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="HeaderTemplate">
+                            <Setter.Value>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=GroupBox}}" FontSize="17" Foreground="#FFE6C0" Margin="0,5,0,10"/>
+                                </DataTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
 
-                        <DataTemplate x:Key="itemTemplate">
-                            <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Height="25" Command="{Binding Command}">
-                                <Label Content="{Binding Value.Title, Mode=OneWay}" FontSize="15" Margin="0,-3,0,0" Foreground="White"/>
-                            </CheckBox>
-                        </DataTemplate>
-                    </StackPanel.Resources>
+                    <DataTemplate x:Key="itemTemplate">
+                        <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Height="20" Margin="0,6,0,0" Command="{Binding Command}">
+                            <Label Content="{Binding Value.Title, Mode=OneWay}" FontSize="15" Margin="0,-7,0,0" Foreground="White"/>
+                        </CheckBox>
+                    </DataTemplate>
+                </StackPanel.Resources>
 
-                    <GroupBox Tag="Categories">
-                        <ItemsControl ItemsSource="{Binding CategorySelections, Mode=OneWay}" Margin="5,0,0,0" ItemTemplate="{StaticResource itemTemplate}"/>
-                    </GroupBox>
+                <GroupBox Tag="Categories">
+                    <ItemsControl ItemsSource="{Binding CategorySelections, Mode=OneWay}" Margin="5,0,0,0" ItemTemplate="{StaticResource itemTemplate}"/>
+                </GroupBox>
 
-                    <GroupBox Tag="Tags">
-                        <ItemsControl ItemsSource="{Binding TagSelections, Mode=OneWay}" Margin="5,0,0,0" ItemTemplate="{StaticResource itemTemplate}"/>
-                    </GroupBox>
+                <GroupBox Tag="Tags">
+                    <ItemsControl ItemsSource="{Binding TagSelections, Mode=OneWay}" Margin="5,0,0,0" ItemTemplate="{StaticResource itemTemplate}"/>
+                </GroupBox>
 
-                    <GroupBox Tag="Factorio version">
-                        <StackPanel Margin="5,0,0,0">
-                            <ComboBox ItemsSource="{Binding GameVersionSelections}" SelectedValue="{Binding SelectedGameVersion}" SelectedIndex="8" Margin="0,0,10,0"/>
-                            <CheckBox IsChecked="{Binding IncludeDeprecatedMods}" Margin="0,5,0,0" Command="{Binding RefreshModsListCommand}">
-                                <Label Content="Include deprecated mods" Margin="0,-5,0,5" Foreground="White"/>
-                            </CheckBox>
-                        </StackPanel>
-                    </GroupBox>
+                <GroupBox Tag="Factorio version">
+                    <StackPanel Margin="5,0,0,0">
+                        <ComboBox ItemsSource="{Binding GameVersionSelections}" SelectedValue="{Binding SelectedGameVersion}" SelectedIndex="8" Margin="0,0,10,0"/>
+                        <CheckBox IsChecked="{Binding IncludeDeprecatedMods}" Margin="0,5,0,0" Command="{Binding RefreshModsListCommand}">
+                            <Label Content="Include deprecated mods" Margin="0,-5,0,5" Foreground="White"/>
+                        </CheckBox>
+                    </StackPanel>
+                </GroupBox>
 
-                </StackPanel>
-            </Grid>
-        </controls:ClippingBorder>
+            </StackPanel>
+        </controls:ShadowOverlayBorder>
 
         <Grid>
             <TextBlock x:Name="errorTextBlock" Visibility="{Binding IsCriticalError, Converter={converters:BooleanToVisibilityConverter}}" TextWrapping="WrapWithOverflow" Margin="30">
-        <Run Text="Application's runtime was interupted by critical error message" Foreground="White"/>
-        <LineBreak/>
-        <LineBreak/>
-        <Run Text="{Binding CriticalErrorMessage, Mode=OneWay}" Foreground="White"/>
+                <Run Text="Application's runtime was interupted by critical error message" Foreground="White"/>
+                <LineBreak/>
+                <LineBreak/>
+                <Run Text="{Binding CriticalErrorMessage, Mode=OneWay}" Foreground="White"/>
             </TextBlock>
 
             <StackPanel>

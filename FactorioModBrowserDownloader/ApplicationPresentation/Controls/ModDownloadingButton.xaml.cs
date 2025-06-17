@@ -66,8 +66,6 @@ namespace FactorioNexus.ApplicationPresentation.Controls
             {
                 case nameof(ModPage):
                     {
-
-
                         DownloadEntry = ModsDownloadingManager.FindEntry(ModPage);
                         SetBinding(DisplayStatusProperty, new Binding("DownloadEntry.Status") { ElementName = "this" });
                         break;

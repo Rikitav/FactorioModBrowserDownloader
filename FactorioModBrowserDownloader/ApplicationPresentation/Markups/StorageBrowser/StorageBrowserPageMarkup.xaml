@@ -17,12 +17,13 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Grid>
-                        <controls:ShadowOverlayBorder Panel.ZIndex="1"/>
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox Margin="5,0,0,0"/>
-                            <Image Source="{Binding Thumbnail}" Width="30" Height="30" Margin="5"/>
-                            <TextBlock Text="{Binding Info.Title}" Foreground="White" VerticalAlignment="Center" FontSize="15" Margin="10,0,0,0"/>
-                        </StackPanel>
+                        <controls:ShadowOverlayBorder>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox Margin="5,0,0,0" Height="20" Width="20"/>
+                                <Image Source="{Binding Thumbnail}" Width="30" Height="30" Margin="5" RenderOptions.BitmapScalingMode="LowQuality" RenderOptions.EdgeMode="Unspecified"/>
+                                <TextBlock Text="{Binding Info.Title}" Foreground="White" VerticalAlignment="Center" FontSize="15" Margin="10,0,0,0"/>
+                            </StackPanel>
+                        </controls:ShadowOverlayBorder>
                     </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

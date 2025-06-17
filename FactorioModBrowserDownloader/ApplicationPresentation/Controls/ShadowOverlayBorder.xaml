@@ -4,14 +4,34 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FactorioNexus.ApplicationPresentation.Controls"
+             xmlns:converters="clr-namespace:FactorioNexus.ApplicationPresentation.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="150" d:DesignWidth="150" x:Name="this" IsHitTestVisible="False">
-    
-    <Border BorderThickness="1.5" ClipToBounds="True">
-        <Border Background="Transparent" BorderBrush="{Binding BorderBrush, ElementName=this, TargetNullValue=Black}" BorderThickness="10" Margin="-11.5" CornerRadius="8">
-            <Border.Effect>
-                <DropShadowEffect ShadowDepth="0" BlurRadius="10"/>
-            </Border.Effect>
-        </Border>
-    </Border>
+             d:DesignHeight="150" d:DesignWidth="150" x:Name="this">
+
+    <UserControl.Style>
+        <Style TargetType="UserControl">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="UserControl">
+
+                        <local:ClippingBorder Background="{Binding Background, Source={x:Reference this}}" CornerRadius="{Binding CornerRadius, Source={x:Reference this}}">
+                            <Grid>
+                                <Border Panel.ZIndex="1" Background="Transparent" Margin="-10" BorderThickness="10" IsHitTestVisible="False"
+                                        BorderBrush="{Binding BorderBrush, TargetNullValue=Black, Source={x:Reference this}}"
+                                        CornerRadius="{Binding CornerRadius, Source={x:Reference this}}">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="10"
+                                                          ShadowDepth="{Binding ShadowDepth, Source={x:Reference this}}"
+                                                          Direction="{Binding ShadowDirection, Source={x:Reference this}}"/>
+                                    </Border.Effect>
+                                </Border>
+                                
+                                <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+                            </Grid>
+                        </local:ClippingBorder>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Style>
 </UserControl>

@@ -13,4 +13,8 @@
             <TextBlock Foreground="Black" FontFamily="pack://application:,,,/Fonts/#Titillium Web" FontSize="15" Text="{Binding DownloadEntry.Status, ElementName=this, FallbackValue=Download, TargetNullValue=Download}"/>
         </Button.Content>
     </Button>
+
+    <UserControl.Resources>
+        
+    </UserControl.Resources>
 </UserControl>
