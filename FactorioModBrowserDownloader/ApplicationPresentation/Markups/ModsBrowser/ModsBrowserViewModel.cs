@@ -15,7 +15,7 @@ public class ModsBrowserViewModel : ViewModelBase
     private readonly object ExtendLock = new object();
     private CancellationTokenSource TokenSource = new CancellationTokenSource();
     private CancellationToken Cancell => TokenSource.Token;
-    private readonly ResetableAsyncTimer SearchTextTimer;
+    //private readonly ResetableAsyncTimer SearchTextTimer;
 
     // Mods display properties
     private readonly ObservableCollection<ModPageFullInfo> _displayModsList = [];
@@ -54,16 +54,6 @@ public class ModsBrowserViewModel : ViewModelBase
     public string[] GameVersionSelections
     {
         get => _gameVersionSelections;
-    }
-
-    public Dictionary<string, ModPageFullInfo>.ValueCollection CachedMods
-    {
-        get => ModsBrowsingManager.Cached.Values;
-    }
-
-    public List<ModPageEntryInfo> ModsEntries
-    {
-        get => ModsBrowsingManager.Entries;
     }
 
     public ObservableCollection<ModPageFullInfo> DisplayModsList
@@ -328,7 +318,7 @@ public class ModsBrowserViewModel : ViewModelBase
 
             case nameof(NameSearchText):
                 {
-                    //SearchTextTimer.Start();
+                    //SearchTextTimer.Reset();
                     break;
                 }
         }

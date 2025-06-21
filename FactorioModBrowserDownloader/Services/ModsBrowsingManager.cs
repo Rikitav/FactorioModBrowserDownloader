@@ -1,6 +1,8 @@
 ﻿using FactorioNexus.ModPortal;
 using FactorioNexus.ModPortal.Requests;
 using FactorioNexus.ModPortal.Types;
+using System.CodeDom.Compiler;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace FactorioNexus.Services
@@ -22,27 +24,38 @@ namespace FactorioNexus.Services
     {
         private static bool Downloading = false;
         private static ModPortalList? LastList = null;
-        private static GetPortalModsListRequest LastListRequest = null!;
-
-        private static readonly List<ModPageEntryInfo> _modEntries = [];
+        private static GetPortalModsListRequest _requestInstance = new GetPortalModsListRequest();
+        
+        private static readonly ObservableCollection<ModPageEntryInfo> _modEntries = [];
         private static readonly Dictionary<string, ModPageFullInfo> _cachedMods = [];
 
-        public static List<ModPageEntryInfo> Entries
-        {
-            get => _modEntries;
-        }
+        /// <summary>
+        /// Current list of mods
+        /// </summary>
+        public static ObservableCollection<ModPageEntryInfo> Entries => _modEntries;
 
-        public static Dictionary<string, ModPageFullInfo> Cached
-        {
-            get => _cachedMods;
-        }
-        
-        public static ModPageEntryInfo[] LastResults
-        {
-            get => LastList?.Results ?? [];
-        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Dictionary<string, ModPageFullInfo> Cached => _cachedMods;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static GetPortalModsListRequest RequestInstance => _requestInstance;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static ModPageEntryInfo[] LastResults => LastList?.Results ?? [];
 
         public static string? NameFilter
+        {
+            get;
+            set;
+        }
+
+        public static bool ShowDeprecated
         {
             get;
             set;
@@ -53,14 +66,14 @@ namespace FactorioNexus.Services
             Entries.Clear();
             LastList = null;
 
-            LastListRequest = new GetPortalModsListRequest()
+            _requestInstance = new GetPortalModsListRequest()
             {
                 PageIndex = 0,
                 SortProperty = sortBy.ToProperty(),
                 SortOrder = sortOrder.ToProperty(),
                 PageSize = pageSize?.ToString() ?? "max",
                 Namelist = NameFilter,
-                HideDeprecated = true
+                HideDeprecated = !ShowDeprecated
             };
         }
 
@@ -72,11 +85,11 @@ namespace FactorioNexus.Services
             try
             {
                 Downloading = true;
-                LastListRequest.PageIndex++;
-                LastListRequest.Namelist = NameFilter;
+                RequestInstance.PageIndex++;
+                RequestInstance.Namelist = NameFilter;
 
-                Debug.WriteLine("Extending mod entries. Current page : {0}", [LastListRequest.PageIndex]);
-                LastList = await FactorioNexusClient.Instance.SendRequest(LastListRequest, cancellationToken);
+                Debug.WriteLine("Extending mod entries. Current page : {0}", [RequestInstance.PageIndex]);
+                LastList = await FactorioNexusClient.Instance.SendRequest(RequestInstance, cancellationToken);
 
                 if (LastList.Results is null)
                 {
@@ -85,18 +98,18 @@ namespace FactorioNexus.Services
                 }
 
                 Debug.WriteLine("Extending successfull. GFathered {0} mods", [LastList.Results.Length]);
-                _modEntries.AddRange(LastList.Results);
+                Array.ForEach(LastResults, _modEntries.Add);
             }
             catch (OperationCanceledException)
             {
-                LastListRequest.PageIndex--;
+                RequestInstance.PageIndex--;
                 LastList = null;
 
                 Debug.WriteLine("Extending cancelled");
             }
             catch (Exception ex)
             {
-                LastListRequest.PageIndex--;
+                RequestInstance.PageIndex--;
                 LastList = null;
 
                 Debug.WriteLine("Failed to extend mods entries. {0}", [ex]);
@@ -111,11 +124,14 @@ namespace FactorioNexus.Services
         public static async Task<ModPageFullInfo> FetchFullModInfo(ModPageEntryInfo modEntry, CancellationToken cancellationToken = default)
             => await FetchFullModInfo(modEntry.ModId, cancellationToken);
 
+        public static async Task<ModPageFullInfo> FetchFullModInfo(DependencyInfo dependency, CancellationToken cancellationToken = default)
+            => await FetchFullModInfo(dependency.ModId, cancellationToken);
+
         public static async Task<ModPageFullInfo> FetchFullModInfo(string modId, CancellationToken cancellationToken = default)
         {
             if (Cached.TryGetValue(modId, out ModPageFullInfo? fullMod))
             {
-                Debug.WriteLine("ModPageFullInfo was restored from cached mods");
+                Debug.WriteLine("ModPageFullInfo {0} was restored from cached mods", [modId]);
                 return fullMod;
             }
 

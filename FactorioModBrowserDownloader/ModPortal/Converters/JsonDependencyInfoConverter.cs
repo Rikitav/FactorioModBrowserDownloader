@@ -7,12 +7,12 @@ namespace FactorioNexus.ModPortal.Converters
 {
     public partial class JsonDependencyInfoConverter : JsonConverter<DependencyInfo[]>
     {
-        private static readonly Dictionary<string, Dependency> DependencyPrefix = new Dictionary<string, Dependency>()
+        private static readonly Dictionary<string, DependencyModifier> DependencyPrefix = new Dictionary<string, DependencyModifier>()
         {
-            { "!", Dependency.Incompatible },
-            { "?", Dependency.Optional },
-            { "~", Dependency.DontAffect },
-            { "(?)", Dependency.Hidden }
+            { "!", DependencyModifier.Incompatible },
+            { "?", DependencyModifier.Optional },
+            { "~", DependencyModifier.DontAffect },
+            { "(?)", DependencyModifier.Hidden }
         };
 
         private static readonly Dictionary<string, VersionOperator> DependencyOperators = new Dictionary<string, VersionOperator>()
@@ -51,15 +51,17 @@ namespace FactorioNexus.ModPortal.Converters
                 if (!match.Success)
                     continue;
 
-                DependencyInfo dependency = new DependencyInfo();
+                DependencyInfo dependency = new DependencyInfo()
+                {
+                    ModId = match.Groups[2].Value
+                };
 
-                if (match.Groups[1].Success && DependencyPrefix.TryGetValue(match.Groups[0].Value, out Dependency prefix))
+                if (!match.Groups[1].Success)
+                    dependency.Prefix = DependencyModifier.Required;
+                else if (DependencyPrefix.TryGetValue(match.Groups[0].Value, out DependencyModifier prefix))
                     dependency.Prefix = prefix;
 
-                if (match.Groups[1].Success)
-                    dependency.ModId = match.Groups[1].Value;
-
-                if (match.Groups[3].Success && DependencyOperators.TryGetValue(match.Groups[2].Value, out VersionOperator versionOperator))
+                if (match.Groups[3].Success && DependencyOperators.TryGetValue(match.Groups[3].Value, out VersionOperator versionOperator))
                     dependency.Operator = versionOperator;
 
                 if (match.Groups[4].Success && Version.TryParse(match.Groups[4].Value, out Version? version))

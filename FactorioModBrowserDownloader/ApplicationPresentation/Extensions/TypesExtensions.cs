@@ -65,6 +65,17 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
             return builder.ToString();
         }
 
+        public static bool Aggreagate<T>(this Exception exception)
+        {
+            if (exception is T)
+                return true;
+
+            if (exception.InnerException == null)
+                return false;
+
+            return Aggreagate<T>(exception.InnerException);
+        }
+
         public static FileInfo IndexFile(this DirectoryInfo directory, string fileName)
             => new FileInfo(Path.Combine(directory.FullName, fileName));
     }

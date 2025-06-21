@@ -16,9 +16,8 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
             };
         }
 
-        public async void Start()
+        public void Reset()
         {
-            await Task.Yield();
             timer.Start();
         }
     }

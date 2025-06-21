@@ -19,8 +19,8 @@
             <Grid>
                 <controls:ShadowOverlayBorder CornerRadius="5" Margin="6,6,100,6" Background="#F0DAB4">
                     <Grid>
-                        <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding NameSearchText, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                        <TextBox Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText, Mode=OneWayToSource}"/>
+                        <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding NameSearchText, Mode=OneWayToSource, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
+                        <TextBox Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText, Mode=TwoWay}"/>
                     </Grid>
                 </controls:ShadowOverlayBorder>
 
@@ -63,8 +63,8 @@
                 <GroupBox Tag="Factorio version">
                     <StackPanel Margin="5,0,0,0">
                         <ComboBox ItemsSource="{Binding GameVersionSelections}" SelectedValue="{Binding SelectedGameVersion}" SelectedIndex="8" Margin="0,0,10,0"/>
-                        <CheckBox IsChecked="{Binding IncludeDeprecatedMods}" Margin="0,5,0,0" Command="{Binding RefreshModsListCommand}">
-                            <Label Content="Include deprecated mods" Margin="0,-5,0,5" Foreground="White"/>
+                        <CheckBox IsChecked="{Binding IncludeDeprecatedMods}" Margin="0,5,0,0" Command="{Binding RefreshModsListCommand}" Height="20">
+                            <Label Content="Include deprecated mods" FontSize="15" Margin="0,-7,0,0" Foreground="White"/>
                         </CheckBox>
                     </StackPanel>
                 </GroupBox>

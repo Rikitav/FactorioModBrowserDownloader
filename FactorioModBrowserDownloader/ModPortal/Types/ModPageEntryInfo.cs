@@ -65,5 +65,12 @@ namespace FactorioNexus.ModPortal.Types
         /// </summary>
         [JsonPropertyName("score"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public decimal? Score { get; set; }
+
+        public ReleaseInfo FindRelease(DependencyInfo dependency)
+        {
+            ReleaseInfo[]? searchSpan = Releases ?? [LatestRelease ?? throw new MissingMemberException("Mod page doesn't have any releases")];
+            ReleaseInfo? release = searchSpan.FirstOrDefault(dependency.ValidateRelease);
+            return release ?? throw new KeyNotFoundException("Release matching this dependency is not found");
+        }
     }
 }

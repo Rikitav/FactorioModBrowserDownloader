@@ -1,5 +1,6 @@
 ﻿using FactorioNexus.ApplicationPresentation.Extensions;
 using FactorioNexus.ModPortal.Types;
+using FactorioNexus.Services;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -36,6 +37,7 @@ namespace FactorioNexus.ModPortal
         private FactorioNexusClient()
         {
             httpClient = new HttpClient();
+            httpClient.Timeout = TimeSpan.FromMinutes(10);
         }
 
         public virtual async Task<TResponse> SendRequest<TResponse>(ApiRequestBase<TResponse> request, CancellationToken cancellationToken = default(CancellationToken)) where TResponse : class
@@ -47,6 +49,7 @@ namespace FactorioNexus.ModPortal
             request.BuildParameters(uriBuilder);
 
             Uri requestUri = new Uri(uriBuilder.ToString());
+            Debug.WriteLine("📤 Sending request on URI \"{0}\"", [requestUri]);
 
             HttpRequestMessage httpRequest = new HttpRequestMessage()
             {
@@ -79,7 +82,7 @@ namespace FactorioNexus.ModPortal
                     }
 
                     if (httpResponse.StatusCode != HttpStatusCode.OK)
-                        throw new RequestException("Returned responce has negative status", httpResponse.StatusCode);
+                        throw new RequestException("Returned response has negative status", httpResponse.StatusCode);
 
                     TResponse? response = await DeserializeContent<TResponse>(httpResponse, cancellationToken).ConfigureAwait(false);
                     return response ?? throw new RequestException("Responce is null", httpResponse.StatusCode);
@@ -101,7 +104,7 @@ namespace FactorioNexus.ModPortal
             try
             {
                 string thumbnailUrl = AssetsUrl + modPage.Thumbnail;
-                Debug.WriteLine("Requesting thumbnail : {0}", thumbnailUrl);
+                Debug.WriteLine("🖼️ Requesting thumbnail : {0}", [thumbnailUrl]);
 
                 using (Stream contentStream = await SendDataRequest(thumbnailUrl, cancellationToken))
                 {
@@ -117,22 +120,37 @@ namespace FactorioNexus.ModPortal
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to download the thumbnail for {0}. {1}", [modPage.ModId, ex]);
+                Debug.WriteLine("Failed to download the thumbnail for \"{0}\" mod. {1}", [modPage.ModId, ex]);
                 throw;
             }
         }
 
         public async Task<Stream> DownloadPackage(ModPageEntryInfo modPage, ReleaseInfo releaseInfo, CancellationToken cancellationToken = default)
+            => await DownloadPackage(modPage.ModId, releaseInfo.Version, cancellationToken);
+
+        public async Task<Stream> DownloadPackage(DependencyInfo dependency, CancellationToken cancellationToken = default)
+        {
+            Version? version = dependency.Version;
+            if (version == null)
+            {
+                ModPageFullInfo modPage = await ModsBrowsingManager.FetchFullModInfo(dependency, cancellationToken);
+                version = modPage.FindRelease(dependency).Version;
+            }
+            
+            return await DownloadPackage(dependency.ModId, version, cancellationToken);
+        }
+
+        public async Task<Stream> DownloadPackage(string modId, Version version, CancellationToken cancellationToken = default)
         {
             try
             {
-                string packageUri = PackagesUrl + string.Format("/{0}/{1}.zip", modPage.ModId, releaseInfo.Version);
-                Debug.WriteLine("Requesting package : {0}", packageUri);
+                string packageUri = PackagesUrl + string.Format("/{0}/{1}.zip", modId, version);
+                Debug.WriteLine("📦 Requesting package : {0}", [packageUri]);
                 return await SendDataRequest(packageUri, cancellationToken);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to download the thumbnail for {0}. {1}", [modPage.ModId, ex]);
+                Debug.WriteLine("Failed to download release package \"{0}\" for \"{1}\" mod. {2}", [version, modId, ex]);
                 throw;
             }
         }
@@ -158,7 +176,7 @@ namespace FactorioNexus.ModPortal
         {
             /*
             if (!NativeMethods.IsInternetConnectionAvailable())
-                throw new RequestException("No internet connection");
+                throw new RequestException("No Internet connection");
             */
 
             try

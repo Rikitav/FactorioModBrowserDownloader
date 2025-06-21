@@ -14,7 +14,7 @@ namespace FactorioNexus.ModPortal.Types
         /// The mod portal only accepts mods with names that are longer than 3 characters and shorter than 50 characters.
         /// </summary>
         [JsonPropertyName("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Mandatory field.
@@ -120,12 +120,28 @@ namespace FactorioNexus.ModPortal.Types
         public bool? ExpansionShadersRequired { get; set; }
     }
 
-    public class DependencyInfo
+    public class DependencyInfo()
     {
-        public Dependency? Prefix { get; set; }
-        public string? ModId { get; set; }
+        public required string ModId { get; set; }
+        public DependencyModifier? Prefix { get; set; }
         public VersionOperator? Operator { get; set; }
         public Version? Version { get; set; }
+
+        public bool ValidateRelease(ReleaseInfo release)
+        {
+            if (Version == null)
+                return true;
+
+            return Operator switch
+            {
+                VersionOperator.Less => release.Version < Version,
+                VersionOperator.LessOrEqual => release.Version <= Version,
+                VersionOperator.Equal => release.Version == Version,
+                VersionOperator.MoreOrEqual => release.Version >= Version,
+                VersionOperator.More => release.Version > Version,
+                _ => false,
+            };
+        }
     }
 
     public enum VersionOperator
@@ -137,7 +153,7 @@ namespace FactorioNexus.ModPortal.Types
         More
     }
 
-    public enum Dependency
+    public enum DependencyModifier
     {
         Required,
         Incompatible,

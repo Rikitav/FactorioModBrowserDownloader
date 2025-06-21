@@ -1,15 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RootNamespace>FactorioNexus</RootNamespace>
+    <ApplicationIcon>factorio.ico</ApplicationIcon>
   </PropertyGroup>
 
-  <ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<OutputType>WinExe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
     <None Remove="Fonts\clock-rotate-left.svg" />
     <None Remove="Fonts\cubes.svg" />
     <None Remove="Fonts\download.svg" />
@@ -17,6 +25,10 @@
     <None Remove="Fonts\gear.svg" />
     <None Remove="Fonts\TitilliumWeb-Bold.ttf" />
   </ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="factorio.ico" />
+	</ItemGroup>
 
   <ItemGroup>
 	  <Resource Include="ApplicationPresentation\Markups\MainWindow\background.jpg" />

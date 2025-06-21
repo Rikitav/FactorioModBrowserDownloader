@@ -9,7 +9,7 @@ namespace FactorioNexus.ModPortal.Requests
         /// Only return non-deprecated mods.
         /// </summary>
         [JsonPropertyName("hide_deprecated")]
-        public bool? HideDeprecated { get; set; }
+        public bool HideDeprecated { get; set; } = true;
 
         /// <summary>
         /// Page number you would like to show. Makes it so you can see a certain part of the list without getting detail on all

@@ -20,7 +20,7 @@ namespace FactorioNexus.ModPortal.Types
         /// A copy of the mod's info.json file, only contains factorio_version in short version, also contains an array of dependencies in full version
         /// </summary>
         [JsonPropertyName("info_json"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-        public ModInfo? ModInfo { get; set; }
+        public required ModInfo ModInfo { get; set; }
 
         /// <summary>
         /// 8601) 	ISO 8601 for when the mod was released. (RFC 3339 nano)

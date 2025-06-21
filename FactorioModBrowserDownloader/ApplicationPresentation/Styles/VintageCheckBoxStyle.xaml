@@ -50,6 +50,7 @@
 
                     <!-- Resources -->
                     <ControlTemplate.Resources>
+                        
                         <DrawingImage x:Key="checkMark">
                             <DrawingImage.Drawing>
                                 <DrawingGroup ClipGeometry="M0,0 V78.369 H78.369 V0 H0 Z">
@@ -62,6 +63,7 @@
                                 </DrawingGroup>
                             </DrawingImage.Drawing>
                         </DrawingImage>
+                        
                     </ControlTemplate.Resources>
 
                 </ControlTemplate>

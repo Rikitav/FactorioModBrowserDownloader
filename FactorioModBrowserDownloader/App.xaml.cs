@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 
 namespace FactorioNexus
 {
@@ -9,7 +10,8 @@ namespace FactorioNexus
     {
         public App()
         {
-#if RELEASE
+#if DEBUG
+            Trace.Listeners.Add(new ConsoleTraceListener());
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 #endif
         }
