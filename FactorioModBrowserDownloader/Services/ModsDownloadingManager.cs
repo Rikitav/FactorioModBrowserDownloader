@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 
 namespace FactorioNexus.Services
 {
@@ -18,12 +17,11 @@ namespace FactorioNexus.Services
         {
             try
             {
-                if (!TryFindEntry(modPage, out PackageDownloadEntry? entry))
-                {
-                    entry = new ModDownloadEntry(modPage, release);
-                    QueueModDownloadingEntry(entry, cancellationToken).ConfigureAwait(false);
-                }
+                if (TryFindEntry(modPage, out PackageDownloadEntry? entry))
+                    return entry;
 
+                entry = new ModDownloadEntry(modPage, release);
+                QueueModDownloadingEntry(entry, cancellationToken);
                 return entry;
             }
             catch (Exception ex)
@@ -33,46 +31,78 @@ namespace FactorioNexus.Services
             }
         }
 
-        public static async Task<PackageDownloadEntry> QueueDependencyDownloading(DependencyInfo dependency, CancellationToken cancellationToken = default)
+        public static async Task<IEnumerable<DependencyInfo>> ScanRequiredDependencies(ReleaseInfo release)
         {
-            try
-            {
-                if (!TryFindEntry(dependency, out PackageDownloadEntry? entry))
-                {
-                    entry = new DependencyDownloadEntry(dependency);
-                    await QueueModDownloadingEntry(entry, cancellationToken);
-                }
+            if (release.ModInfo.Dependencies.Length == 0)
+                return Enumerable.Empty<DependencyInfo>();
+            
+            List<DependencyInfo> dependencyInlineTree = [];
+            await BuildInlineDependencyTree(release, dependencyInlineTree);
+            return dependencyInlineTree;
+        }
 
-                return entry;
-            }
-            catch (Exception ex)
+        public static async void QueueModDownloadingEntry(PackageDownloadEntry entry, CancellationToken cancellationToken = default)
+        {
+            await QueuePackageDownloadingEntry(entry, cancellationToken);
+        }
+
+        private static async Task BuildInlineDependencyTree(ReleaseInfo release, List<DependencyInfo> tree)
+        {
+            foreach (DependencyInfo dependency in release.ModInfo.Dependencies.Where(ValidateRequiredDependency))
             {
-                Debug.WriteLine("Failed to queue {0} dependency download. {1}", [dependency.ModId, ex]);
-                throw;
+                if (!ValidateRequiredDependency(dependency))
+                    continue;
+
+                if (!FindDependency(tree, dependency))
+                    continue;
+
+                ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(dependency);
+                ReleaseInfo dependencyRelease = dependencyModPage.FindRelease(dependency);
+
+                if (dependencyRelease.ModInfo.Dependencies.Length > 0)
+                    await BuildInlineDependencyTree(dependencyRelease, tree);
             }
         }
 
-        public static IEnumerable<DependencyInfo> ScanRequiredDependencies(ReleaseInfo release)
+        private static bool FindDependency(List<DependencyInfo> tree, DependencyInfo toSearch)
         {
-            if (release.ModInfo.Dependencies is null || release.ModInfo.Dependencies.Length == 0)
-                yield break;
+            DependencyInfo? found = tree.FirstOrDefault(current => current.ModId == toSearch.ModId);
 
-            foreach (DependencyInfo dependency in release.ModInfo.Dependencies)
+            if (found == null)
             {
-                if (dependency.ModId == "base" || dependency.ModId == "space-age")
-                    continue;
-
-                if (ModsStoringManager.TryFindStore(dependency, out _))
-                    continue;
-
-                if (dependency.Prefix != DependencyModifier.Required)
-                    continue;
-
-                yield return dependency;
+                tree.Add(toSearch);
+                return true;
             }
+
+            int versionCompare = toSearch.Version == null
+                ? found.Version == null ? 0 : 1
+                : found.Version == null ? -1 : toSearch.Version.CompareTo(found.Version);
+
+            if (versionCompare == 1)
+            {
+                tree.Remove(found);
+                tree.Add(toSearch);
+                return true;
+            }
+
+            return false;
         }
 
-        private static async Task QueueModDownloadingEntry(PackageDownloadEntry entry, CancellationToken cancellationToken = default)
+        private static bool ValidateRequiredDependency(DependencyInfo dependency)
+        {
+            if (dependency.ModId == "base" || dependency.ModId == "space-age")
+                return false;
+
+            if (ModsStoringManager.TryFindStore(dependency, out _))
+                return false;
+
+            if (dependency.Prefix != DependencyModifier.Required)
+                return false;
+
+            return true;
+        }
+
+        public static async Task QueuePackageDownloadingEntry(PackageDownloadEntry entry, CancellationToken cancellationToken = default)
         {
             try
             {

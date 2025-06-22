@@ -4,16 +4,17 @@ using FactorioNexus.ModPortal.Types;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
 
 namespace FactorioNexus.Services
 {
     public enum ModStoreStatus
     {
-        Ready,
         Queued,
 
         Downloading,
         Extracting,
+        AwaitingDependencies,
         Downloaded,
 
         Canceled,
@@ -28,24 +29,6 @@ namespace FactorioNexus.Services
 
         protected override async Task<Stream> DownloadPackageInternal(CancellationToken cancellationToken = default(CancellationToken))
             => await FactorioNexusClient.Instance.DownloadPackage(_dependencyInfo, cancellationToken);
-
-        public override async Task<DirectoryInfo?> StartDownload()
-        {
-            Task<DirectoryInfo?> ModDownloadingTask = base.StartDownload();
-            List<Task> downloadTasks = [ModDownloadingTask];
-
-            ModPageFullInfo modPage = await ModsBrowsingManager.FetchFullModInfo(_dependencyInfo);
-            downloadTasks.AddRange(DownloadDependencies(modPage.FindRelease(_dependencyInfo)));
-
-            await Task.WhenAll(downloadTasks);
-            return await ModDownloadingTask;
-        }
-
-        private IEnumerable<Task> DownloadDependencies(ReleaseInfo release)
-        {
-            foreach (DependencyInfo dependency in ModsDownloadingManager.ScanRequiredDependencies(release))
-                yield return ModsDownloadingManager.QueueDependencyDownloading(dependency);
-        }
     }
 
     public class ModDownloadEntry(ModPageFullInfo modPageFullInfo, ReleaseInfo release) : PackageDownloadEntry()
@@ -59,18 +42,18 @@ namespace FactorioNexus.Services
 
         public override async Task<DirectoryInfo?> StartDownload()
         {
+            List<Task> downloadingTasks = [];
+            foreach (DependencyInfo dependency in await ModsDownloadingManager.ScanRequiredDependencies(release))
+            {
+                DependencyDownloadEntry dependencyDownload = new DependencyDownloadEntry(dependency);
+                Task dependencyDownloadTask = ModsDownloadingManager.QueuePackageDownloadingEntry(dependencyDownload);
+                downloadingTasks.Add(dependencyDownloadTask);
+            }
+
             Task<DirectoryInfo?> ModDownloadingTask = base.StartDownload();
-            List<Task> downloadTasks = [ModDownloadingTask];
-            downloadTasks.AddRange(DownloadDependencies());
-
-            await Task.WhenAll(downloadTasks);
+            downloadingTasks.Add(ModDownloadingTask);
+            await Task.WhenAll(downloadingTasks);
             return await ModDownloadingTask;
-        }
-
-        private IEnumerable<Task> DownloadDependencies()
-        {
-            foreach (DependencyInfo dependency in ModsDownloadingManager.ScanRequiredDependencies(_releaseInfo))
-                yield return ModsDownloadingManager.QueueDependencyDownloading(dependency);
         }
     }
 
@@ -79,7 +62,7 @@ namespace FactorioNexus.Services
         private readonly CancellationTokenSource _cancellationSource;
         private readonly CancellCommand _cancellDownloadCommand;
 
-        private ModStoreStatus _downloadingStatus = ModStoreStatus.Ready;
+        private ModStoreStatus _downloadingStatus = ModStoreStatus.Queued;
         private ModDownloadProgress _downloadingProgress = new ModDownloadProgress();
         private string? _errorMessage = null;
         private bool _working = false;
@@ -119,7 +102,6 @@ namespace FactorioNexus.Services
         {
             _cancellationSource = new CancellationTokenSource();
             _cancellDownloadCommand = new CancellCommand(_cancellationSource);
-            Status = ModStoreStatus.Queued;
         }
 
         public virtual async Task<DirectoryInfo?> StartDownload()

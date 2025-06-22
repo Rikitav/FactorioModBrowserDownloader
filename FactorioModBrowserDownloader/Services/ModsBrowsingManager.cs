@@ -97,7 +97,7 @@ namespace FactorioNexus.Services
                     throw new Exception("Extending failed. Returned null entries.");
                 }
 
-                Debug.WriteLine("Extending successfull. GFathered {0} mods", [LastList.Results.Length]);
+                Debug.WriteLine("Extending successfull. Fetched {0} mods", [LastList.Results.Length]);
                 Array.ForEach(LastResults, _modEntries.Add);
             }
             catch (OperationCanceledException)
@@ -105,7 +105,7 @@ namespace FactorioNexus.Services
                 RequestInstance.PageIndex--;
                 LastList = null;
 
-                Debug.WriteLine("Extending cancelled");
+                Debug.WriteLine("Extending canceled");
             }
             catch (Exception ex)
             {
@@ -137,7 +137,7 @@ namespace FactorioNexus.Services
 
             try
             {
-                Debug.WriteLine("Requesting {0} modId", [modId]);
+                Debug.WriteLine("Requesting \"{0}\"'s full mod page", [modId]);
                 fullMod = await FactorioNexusClient.Instance.SendRequest(new GetFullModInfoRequest(modId), cancellationToken);
 
                 Debug.WriteLine("ModId {0} cached", [modId]);
