@@ -14,7 +14,7 @@ namespace FactorioNexus.ModPortal.Types
         /// The mod portal only accepts mods with names that are longer than 3 characters and shorter than 50 characters.
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Mandatory field.
@@ -64,7 +64,7 @@ namespace FactorioNexus.ModPortal.Types
         /// Mods with the factorio_version "0.18" can also be loaded in 1.0 and the mod portal will return them when queried for factorio_version 1.0 mods.
         /// </summary>
         [JsonPropertyName("factorio_version")]
-        public Version? FactorioVersion { get; set; }
+        public required Version FactorioVersion { get; set; }
 
         /// <summary>
         /// Optional field.
@@ -81,7 +81,7 @@ namespace FactorioNexus.ModPortal.Types
         /// An empty array allows to work around the default and have no dependencies at all.
         /// </summary>
         [JsonPropertyName("dependencies"), JsonConverter(typeof(JsonDependencyInfoConverter))]
-        public DependencyInfo[]? Dependencies { get; set; }
+        public DependencyInfo[] Dependencies { get; set; } = [];
 
         /// <summary>
         /// Optional field. Indicates that mod require 2.0 Space age DLC feature. 

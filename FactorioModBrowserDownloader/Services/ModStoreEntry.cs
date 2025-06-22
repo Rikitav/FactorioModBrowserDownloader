@@ -34,7 +34,7 @@ namespace FactorioNexus.Services
 
         public ModPageFullInfo ModPage
         {
-            get => Get(ref _modPage, () => ModsBrowsingManager.FetchFullModInfo(Info.Name).Result);
+            get => Get(ref _modPage, () => ModsBrowsingManager.FetchFullModInfo(Info.Name ?? throw new ArgumentException("Mod id cannot be null")).Result);
             private set => Set(ref _modPage, value);
         }
 

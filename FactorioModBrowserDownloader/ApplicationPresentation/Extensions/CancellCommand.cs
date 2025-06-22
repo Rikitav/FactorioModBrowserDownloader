@@ -7,7 +7,15 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
         private readonly CancellationTokenSource CancellationSource = cancellationSource;
         public event EventHandler? CanExecuteChanged;
 
-        public bool CanExecute(object? parameter) => !CancellationSource.IsCancellationRequested;
-        public void Execute(object? parameter) => CancellationSource.Cancel();
+        public bool CanExecute(object? parameter)
+        {
+            return !CancellationSource.IsCancellationRequested;
+        }
+
+        public void Execute(object? parameter)
+        {
+            CancellationSource.Cancel();
+            CanExecuteChanged?.Invoke(this, new EventArgs());
+        }
     }
 }

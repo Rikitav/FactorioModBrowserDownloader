@@ -6,7 +6,6 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
@@ -36,8 +35,10 @@ namespace FactorioNexus.ModPortal
 
         private FactorioNexusClient()
         {
-            httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromMinutes(10);
+            httpClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromMinutes(10)
+            };
         }
 
         public virtual async Task<TResponse> SendRequest<TResponse>(ApiRequestBase<TResponse> request, CancellationToken cancellationToken = default(CancellationToken)) where TResponse : class

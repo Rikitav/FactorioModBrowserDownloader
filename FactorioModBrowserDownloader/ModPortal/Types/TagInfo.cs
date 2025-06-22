@@ -75,7 +75,9 @@ namespace FactorioNexus.ModPortal.Types
                 if (left is null | right is null)
                     return left == null && right == null;
 
+#pragma warning disable CS8602
                 return left.Name.Equals(right.Name);
+#pragma warning restore CS8602
             }
 
             public int GetHashCode([DisallowNull] TagInfo obj)
