@@ -15,8 +15,9 @@
         <DockPanel DockPanel.Dock="Bottom" LastChildFill="False" Height="50" Background="#242324">
             
             <!-- Downloading options -->
-            <!--Button x:Name="DownloadButton" DockPanel.Dock="Right" Content="Download" Margin="6" Width="100" Click="DownloadButton_Click"/-->
             <local:ModDownloadingButton DockPanel.Dock="Right" Margin="6,6,6,10" ModPage="{Binding}" Width="150" Style="{DynamicResource VintageDownloadButtonStyle}"/>
+
+            <Button DockPanel.Dock="Right" Content="Dependencies" Margin="6" Width="100" Click="DownloadButton_Click"/>
 
             <!-- Tags list -->
             <ItemsControl DockPanel.Dock="Left" ItemsSource="{Binding Tags}" Margin="10,10,0,10">

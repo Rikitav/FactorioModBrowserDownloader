@@ -129,15 +129,12 @@ namespace FactorioNexus.ModPortal
         public async Task<Stream> DownloadPackage(ModPageEntryInfo modPage, ReleaseInfo releaseInfo, CancellationToken cancellationToken = default)
             => await DownloadPackage(modPage.ModId, releaseInfo.Version, cancellationToken);
 
-        public async Task<Stream> DownloadPackage(DependencyInfo dependency, CancellationToken cancellationToken = default)
+        public async Task<Stream> DownloadPackage(DependencyVersionRange dependency, CancellationToken cancellationToken = default)
         {
-            Version? version = dependency.Version;
-            if (version == null)
-            {
-                ModPageFullInfo modPage = await ModsBrowsingManager.FetchFullModInfo(dependency, cancellationToken);
-                version = modPage.FindRelease(dependency).Version;
-            }
-            
+            if (dependency.LatestMatchingRelease == null)
+                throw new ArgumentNullException(nameof(dependency), "Latest matching release wasn't found for this dependency");
+
+            Version? version = dependency.LatestMatchingRelease.Version;
             return await DownloadPackage(dependency.ModId, version, cancellationToken);
         }
 

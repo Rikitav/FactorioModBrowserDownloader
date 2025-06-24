@@ -20,7 +20,7 @@
                 <controls:ShadowOverlayBorder CornerRadius="5" Margin="6,6,100,6" Background="#F0DAB4">
                     <Grid>
                         <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding NameSearchText, Mode=OneWayToSource, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                        <TextBox Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText, Mode=TwoWay}"/>
+                        <TextBox Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText}"/>
                     </Grid>
                 </controls:ShadowOverlayBorder>
 

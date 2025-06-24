@@ -54,7 +54,7 @@ namespace FactorioNexus.Services
             }
 
             FileInfo thumbnailFile = modDirectory.IndexFile("thumbnail.png");
-            if (modInfoFile.Exists)
+            if (thumbnailFile.Exists)
             {
                 Thumbnail = ModsThumbnailsManager.LoadThumbnailFile(thumbnailFile);
             }

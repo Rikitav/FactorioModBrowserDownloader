@@ -100,7 +100,7 @@ namespace FactorioNexus.ApplicationPresentation.Controls
                 IsDownloaded = false;
                 FaultReason = string.Empty;
 
-                DownloadEntry = ModsDownloadingManager.QueueModDownloading(ModPage, ModPage.DisplayRelease);
+                DownloadEntry = ModsDownloadingManager.QueueModDownloading(ModPage, ModPage.DisplayLatestRelease);
             }
             catch (OperationCanceledException)
             {
@@ -122,7 +122,7 @@ namespace FactorioNexus.ApplicationPresentation.Controls
                     {
                         if (ModsStoringManager.TryFindStore(ModPage, out ModStoreEntry? store))
                         {
-                            if (store.Info.ModVersion != null && ModPage.DisplayRelease.Version > store.Info.ModVersion)
+                            if (store.Info.ModVersion != null && ModPage.DisplayLatestRelease.Version > store.Info.ModVersion)
                             {
                                 HasUpdate = true;
                                 return;

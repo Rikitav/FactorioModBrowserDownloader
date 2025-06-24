@@ -1,8 +1,9 @@
 ﻿using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace FactorioNexus.ModPortal.Types
 {
-    public class ReleaseInfo
+    public partial class ReleaseInfo
     {
         /// <summary>
         /// Path to download for a mod. starts with "/download" and does not include a full url. See #Downloading Mods
@@ -39,5 +40,23 @@ namespace FactorioNexus.ModPortal.Types
         /// </summary>
         [JsonPropertyName("sha1"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public string? ShaHash { get; set; }
+
+        public DependencyInfo AsDependency()
+        {
+            if (string.IsNullOrEmpty(FileName))
+                throw new ArgumentNullException("Cannot create dependency from release without FileName");
+
+            Match match = FileNameRegex().Match(FileName);
+            return new DependencyInfo()
+            {
+                ModId = match.Groups["modId"].Value,
+                Prefix = DependencyModifier.Required,
+                Operator = VersionOperator.Equal,
+                Version = Version
+            };
+        }
+
+        [GeneratedRegex(@"(?'modId'\S+)_(?'version'\S+)\.zip")]
+        private static partial Regex FileNameRegex();
     }
 }

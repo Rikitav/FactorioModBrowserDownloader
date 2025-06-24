@@ -26,6 +26,9 @@ namespace FactorioNexus.Services
                 foreach (DirectoryInfo modDir in storage.GetDirectories())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    if (modDir.Name == "__MACOSX")
+                        continue;
+                    
                     TryAddModStore(modDir);
                 }
             }
@@ -49,6 +52,15 @@ namespace FactorioNexus.Services
             }
         }
 
+        public static bool TryFindStore(ModPageFullInfo modPage, [NotNullWhen(true)] out ModStoreEntry? result)
+            => TryFindStore(modPage.ModId, out result);
+
+        public static bool TryFindStore(DependencyInfo dependency, [NotNullWhen(true)] out ModStoreEntry? result)
+            => TryFindStore(dependency.ModId, out result);
+
+        public static bool TryFindStore(DependencyVersionRange dependency, [NotNullWhen(true)] out ModStoreEntry? result)
+            => TryFindStore(dependency.IsInside, out result);
+
         public static bool TryFindStore(string modId, [NotNullWhen(true)] out ModStoreEntry? result)
         {
             lock (StoreReadLook)
@@ -58,10 +70,13 @@ namespace FactorioNexus.Services
             }
         }
 
-        public static bool TryFindStore(ModPageFullInfo modPage, [NotNullWhen(true)] out ModStoreEntry? result)
-            => TryFindStore(modPage.ModId, out result);
-
-        public static bool TryFindStore(DependencyInfo dependency, [NotNullWhen(true)] out ModStoreEntry? result)
-            => TryFindStore(dependency.ModId, out result);
+        public static bool TryFindStore(Func<ModStoreEntry, bool> predicate, [NotNullWhen(true)] out ModStoreEntry? result)
+        {
+            lock (StoreReadLook)
+            {
+                result = StoredMods.FirstOrDefault(predicate);
+                return result != null;
+            }
+        }
     }
 }

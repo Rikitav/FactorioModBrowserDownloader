@@ -1,7 +1,4 @@
-﻿using FactorioNexus.ModPortal;
-using FactorioNexus.ModPortal.Types;
-using FactorioNexus.Services;
-using System.Diagnostics;
+﻿using FactorioNexus.ModPortal.Types;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,6 +12,12 @@ namespace FactorioNexus.ApplicationPresentation.Controls
         public ModPagePresenter()
         {
             InitializeComponent();
+        }
+
+        private void DownloadButton_Click(object sender, RoutedEventArgs e)
+        {
+            ModPageFullInfo modPage = (ModPageFullInfo)DataContext;
+            MessageBox.Show(string.Join("\n", modPage.DisplayLatestRelease.ModInfo.Dependencies.Select(dp => dp.ToString())));
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 
 namespace FactorioNexus.Services
 {
@@ -31,14 +32,36 @@ namespace FactorioNexus.Services
             }
         }
 
-        public static async Task<IEnumerable<DependencyInfo>> ScanRequiredDependencies(ReleaseInfo release)
+        public static async Task<IEnumerable<DependencyVersionRange>> ScanRequiredDependencies(ReleaseInfo release)
         {
             if (release.ModInfo.Dependencies.Length == 0)
-                return Enumerable.Empty<DependencyInfo>();
-            
-            List<DependencyInfo> dependencyInlineTree = [];
+                return Enumerable.Empty<DependencyVersionRange>();
+
+            Dictionary<string, DependencyVersionRange> dependencyInlineTree = [];
             await BuildInlineDependencyTree(release, dependencyInlineTree);
-            return dependencyInlineTree;
+
+            List<DependencyVersionRange> matchedDependencies = [];
+            foreach (DependencyVersionRange dependency in dependencyInlineTree.Values)
+            {
+                if (!await dependency.TryFindLatestMatchingRelease())
+                    continue;
+
+                if (ModsStoringManager.TryFindStore(dependency, out ModStoreEntry? _))
+                    continue;
+
+                matchedDependencies.Add(dependency);
+
+                /*
+                ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(dependency.ModId);
+                if (!dependencyModPage.TryFindRelease(dependency, out ReleaseInfo? dependencyRelease))
+                    continue;
+ 
+                dependency.LatestMatchingRelease = dependencyRelease;
+                matchedDependencies.Add(dependency);
+                */
+            } 
+
+            return matchedDependencies;
         }
 
         public static async void QueueModDownloadingEntry(PackageDownloadEntry entry, CancellationToken cancellationToken = default)
@@ -46,6 +69,7 @@ namespace FactorioNexus.Services
             await QueuePackageDownloadingEntry(entry, cancellationToken);
         }
 
+        /*
         private static async Task BuildInlineDependencyTree(ReleaseInfo release, List<DependencyInfo> tree)
         {
             foreach (DependencyInfo dependency in release.ModInfo.Dependencies.Where(ValidateRequiredDependency))
@@ -63,43 +87,40 @@ namespace FactorioNexus.Services
                     await BuildInlineDependencyTree(dependencyRelease, tree);
             }
         }
+        */
 
-        private static bool FindDependency(List<DependencyInfo> tree, DependencyInfo toSearch)
+        private static async Task BuildInlineDependencyTree(ReleaseInfo release, Dictionary<string, DependencyVersionRange> inlineTree)
         {
-            DependencyInfo? found = tree.FirstOrDefault(current => current.ModId == toSearch.ModId);
-
-            if (found == null)
+            foreach (DependencyInfo dependency in release.ModInfo.Dependencies)
             {
-                tree.Add(toSearch);
-                return true;
+                if (dependency.ModId == "base" || dependency.ModId == "space-age")
+                    continue;
+
+                if (dependency.Prefix != DependencyModifier.Required)
+                    continue;
+
+                /*
+                if (!ValidateRequiredDependency(dependency))
+                    continue;
+                */
+
+                if (!inlineTree.TryGetValue(dependency.ModId, out DependencyVersionRange? range))
+                {
+                    range = new DependencyVersionRange(dependency);
+                    inlineTree.Add(dependency.ModId, range);
+                }
+                else
+                {
+                    range.Tweak(dependency);
+                }
+
+                ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(dependency);
+                if (!dependencyModPage.TryFindRelease(range, out ReleaseInfo? dependencyRelease))
+                    dependencyRelease = dependencyModPage.DisplayLatestRelease;
+
+                if (dependencyRelease.ModInfo.Dependencies.Length > 0)
+                    await BuildInlineDependencyTree(dependencyRelease, inlineTree);
             }
-
-            int versionCompare = toSearch.Version == null
-                ? found.Version == null ? 0 : 1
-                : found.Version == null ? -1 : toSearch.Version.CompareTo(found.Version);
-
-            if (versionCompare == 1)
-            {
-                tree.Remove(found);
-                tree.Add(toSearch);
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool ValidateRequiredDependency(DependencyInfo dependency)
-        {
-            if (dependency.ModId == "base" || dependency.ModId == "space-age")
-                return false;
-
-            if (ModsStoringManager.TryFindStore(dependency, out _))
-                return false;
-
-            if (dependency.Prefix != DependencyModifier.Required)
-                return false;
-
-            return true;
         }
 
         public static async Task QueuePackageDownloadingEntry(PackageDownloadEntry entry, CancellationToken cancellationToken = default)
@@ -112,7 +133,14 @@ namespace FactorioNexus.Services
                 await DownloadingSemaphore.WaitAsync(cancellationToken);
                 Debug.WriteLine("{0} downloading entry started", [entry.ModId]);
 
-                await entry.StartDownload();
+                DirectoryInfo? modDir = await entry.StartDownload();
+                if (modDir == null)
+                {
+                    Debug.WriteLine("Download entry \"{0}\" returned null directory. Considered failed to download", [entry.ModId]);
+                    return;
+                }
+
+                ModsStoringManager.TryAddModStore(modDir);
                 Debug.WriteLine("{0} entry successfully downloaded", [entry.ModId]);
             }
             catch (OperationCanceledException)

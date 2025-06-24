@@ -21,7 +21,7 @@
 
         <Image Source="{DynamicResource ModInfo_Icon_GameVersion}" Width="18" Height="18" Margin="0,6,0,0"/>
         <Run Tag="  "/>
-        <Run Text="{Binding DisplayRelease.ModInfo.FactorioVersion}" Foreground="#ffffff" BaselineAlignment="Center"/>
+        <Run Text="{Binding DisplayLatestRelease.ModInfo.FactorioVersion}" Foreground="#ffffff" BaselineAlignment="Center"/>
         <LineBreak/>
 
         <Image Source="{DynamicResource ModInfo_Icon_DownloadsCount}" Width="18" Height="18" Margin="0,6,0,0"/>

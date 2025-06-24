@@ -1,5 +1,7 @@
 ﻿using FactorioNexus.ApplicationPresentation.Extensions;
 using FactorioNexus.ModPortal.Converters;
+using FactorioNexus.Services;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace FactorioNexus.ModPortal.Types
@@ -10,7 +12,7 @@ namespace FactorioNexus.ModPortal.Types
         /// Returns <see cref="LatestRelease"/> or first release in <see cref="Releases"/> if <see cref="LatestRelease"/> is null
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-        public ReleaseInfo DisplayRelease => LatestRelease ?? Releases?.ElementAt(0) ?? throw new MissingMemberException("Mod page doesn't have any releases");
+        public ReleaseInfo DisplayLatestRelease => LatestRelease ?? Releases?.LastOrDefault() ?? throw new MissingMemberException("Mod page doesn't have any releases");
 
         /// <summary>
         /// The latest version of the mod available for download. Absent when the namelist parameter is used.
@@ -66,11 +68,15 @@ namespace FactorioNexus.ModPortal.Types
         [JsonPropertyName("score"), JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public decimal? Score { get; set; }
 
-        public ReleaseInfo FindRelease(DependencyInfo dependency)
+        public bool TryFindRelease(DependencyVersionRange dependency, [NotNullWhen(true)] out ReleaseInfo? release)
         {
             ReleaseInfo[]? searchSpan = Releases ?? [LatestRelease ?? throw new MissingMemberException("Mod page doesn't have any releases")];
-            ReleaseInfo? release = searchSpan.FirstOrDefault(dependency.ValidateRelease);
-            return release ?? throw new KeyNotFoundException("Release matching this dependency is not found");
+
+            //ReleaseInfo? release = searchSpan.FirstOrDefault(dependency.IsInside);
+            //return release ?? throw new KeyNotFoundException("Release matching this dependency is not found");
+
+            release = searchSpan.LastOrDefault(dependency.IsInside);
+            return release != null;
         }
     }
 }

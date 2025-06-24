@@ -119,46 +119,4 @@ namespace FactorioNexus.ModPortal.Types
         [JsonPropertyName("expansion_shaders_required")]
         public bool? ExpansionShadersRequired { get; set; }
     }
-
-    public class DependencyInfo()
-    {
-        public required string ModId { get; set; }
-        public DependencyModifier? Prefix { get; set; }
-        public VersionOperator? Operator { get; set; }
-        public Version? Version { get; set; }
-
-        public bool ValidateRelease(ReleaseInfo release)
-        {
-            if (Version == null)
-                return true;
-
-            return Operator switch
-            {
-                VersionOperator.Less => release.Version < Version,
-                VersionOperator.LessOrEqual => release.Version <= Version,
-                VersionOperator.Equal => release.Version == Version,
-                VersionOperator.MoreOrEqual => release.Version >= Version,
-                VersionOperator.More => release.Version > Version,
-                _ => false,
-            };
-        }
-    }
-
-    public enum VersionOperator
-    {
-        Less,
-        LessOrEqual,
-        Equal,
-        MoreOrEqual,
-        More
-    }
-
-    public enum DependencyModifier
-    {
-        Required,
-        Incompatible,
-        Optional,
-        Hidden,
-        DontAffect
-    }
 }

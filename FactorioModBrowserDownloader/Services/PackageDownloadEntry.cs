@@ -4,7 +4,6 @@ using FactorioNexus.ModPortal.Types;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Threading;
 
 namespace FactorioNexus.Services
 {
@@ -22,9 +21,9 @@ namespace FactorioNexus.Services
         Faulted
     }
 
-    public class DependencyDownloadEntry(DependencyInfo dependency) : PackageDownloadEntry()
+    public class DependencyDownloadEntry(DependencyVersionRange dependency) : PackageDownloadEntry()
     {
-        private readonly DependencyInfo _dependencyInfo = dependency;
+        private readonly DependencyVersionRange _dependencyInfo = dependency;
         public override string ModId => _dependencyInfo.ModId;
 
         protected override async Task<Stream> DownloadPackageInternal(CancellationToken cancellationToken = default(CancellationToken))
@@ -43,16 +42,24 @@ namespace FactorioNexus.Services
         public override async Task<DirectoryInfo?> StartDownload()
         {
             List<Task> downloadingTasks = [];
-            foreach (DependencyInfo dependency in await ModsDownloadingManager.ScanRequiredDependencies(_releaseInfo))
+            List<string> dependenciesNames = [];
+
+            foreach (DependencyVersionRange dependency in await ModsDownloadingManager.ScanRequiredDependencies(_releaseInfo))
             {
                 DependencyDownloadEntry dependencyDownload = new DependencyDownloadEntry(dependency);
+                dependenciesNames.Add(dependencyDownload.ModId);
+
                 Task dependencyDownloadTask = ModsDownloadingManager.QueuePackageDownloadingEntry(dependencyDownload);
                 downloadingTasks.Add(dependencyDownloadTask);
             }
 
             Task<DirectoryInfo?> ModDownloadingTask = base.StartDownload();
             downloadingTasks.Add(ModDownloadingTask);
+            Debug.WriteLine("Downloading \"{0}\" mod package with dependencies [{1}]", [ModId, string.Join(", ", dependenciesNames)]);
+
             await Task.WhenAll(downloadingTasks);
+            Debug.WriteLine("Downloading session for mod \"{0}\" ended succesfully", [ModId]);
+
             return await ModDownloadingTask;
         }
     }
