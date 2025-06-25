@@ -17,12 +17,14 @@
     <DockPanel>
         <controls:ShadowOverlayBorder DockPanel.Dock="Top" Height="40" CornerRadius="5" Background="#242324" Margin="10,10,10,0">
             <Grid>
-                <controls:ShadowOverlayBorder CornerRadius="5" Margin="6,6,100,6" Background="#F0DAB4">
+                <!--controls:ShadowOverlayBorder CornerRadius="5" Margin="6,6,100,6" Background="#F0DAB4">
                     <Grid>
                         <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding NameSearchText, Mode=OneWayToSource, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
                         <TextBox Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText}"/>
                     </Grid>
-                </controls:ShadowOverlayBorder>
+                </controls:ShadowOverlayBorder-->
+
+                <controls:SearchBox Margin="6,6,100,6" TextChangeInterval="0:0:0:1" IntervalledText="{Binding NameSearchText}" Style="{DynamicResource VintageSearchBoxStyle}"/>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,6,6">
                     <Button Width="30" Command="{Binding RefreshModsListCommand}"/>

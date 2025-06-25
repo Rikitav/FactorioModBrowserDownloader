@@ -29,24 +29,12 @@ namespace FactorioNexus.Services
         private static readonly ObservableCollection<ModPageEntryInfo> _modEntries = [];
         private static readonly Dictionary<string, ModPageFullInfo> _cachedMods = [];
 
-        /// <summary>
-        /// Current list of mods
-        /// </summary>
         public static ObservableCollection<ModPageEntryInfo> Entries => _modEntries;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public static Dictionary<string, ModPageFullInfo> Cached => _cachedMods;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public static GetPortalModsListRequest RequestInstance => _requestInstance;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public static ModPageEntryInfo[] LastResults => LastList?.Results ?? [];
 
         public static string? NameFilter
@@ -61,7 +49,13 @@ namespace FactorioNexus.Services
             set;
         }
 
-        public static void StartNewBrowser(int? pageSize, SortBy? sortBy = null, SortOrder? sortOrder = null)
+        public static Version? GameVersion
+        {
+            get;
+            set;
+        }
+
+        public static void StartNewBrowser(int? pageSize = null, SortBy? sortBy = null, SortOrder? sortOrder = null, bool maxPage = false)
         {
             Entries.Clear();
             LastList = null;
@@ -71,10 +65,26 @@ namespace FactorioNexus.Services
                 PageIndex = 0,
                 SortProperty = sortBy.ToProperty(),
                 SortOrder = sortOrder.ToProperty(),
-                PageSize = pageSize?.ToString() ?? "max",
+                PageSize = pageSize?.ToString() ?? (maxPage ? "max" : null),
                 Namelist = NameFilter,
-                HideDeprecated = !ShowDeprecated
+                HideDeprecated = !ShowDeprecated,
+                Version = GameVersion
             };
+        }
+
+        public static bool CanExtend()
+        {
+            if (LastList?.Pagination == null)
+                return false;
+
+            LinksInfo? links = LastList.Pagination.Links;
+            if (links == null)
+                return false;
+
+            if (links.First == null && links.Last == null)
+                return false;
+
+            return links.Next != null;
         }
 
         public static async Task ExtendEntries(CancellationToken cancellationToken = default)
@@ -82,11 +92,13 @@ namespace FactorioNexus.Services
             if (Downloading)
                 return;
 
+            if (LastList != null && !CanExtend())
+                return;
+
             try
             {
                 Downloading = true;
                 RequestInstance.PageIndex++;
-                RequestInstance.Namelist = NameFilter;
 
                 Debug.WriteLine("Extending mod entries. Current page : {0}", [RequestInstance.PageIndex]);
                 LastList = await FactorioNexusClient.Instance.SendRequest(RequestInstance, cancellationToken);

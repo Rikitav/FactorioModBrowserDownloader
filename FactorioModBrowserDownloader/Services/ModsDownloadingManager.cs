@@ -1,8 +1,11 @@
-﻿using FactorioNexus.ModPortal.Types;
+﻿using FactorioNexus.ModPortal;
+using FactorioNexus.ModPortal.Types;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
+using System.Windows;
 
 namespace FactorioNexus.Services
 {
@@ -10,6 +13,7 @@ namespace FactorioNexus.Services
     {
         private const int MaxDownloading = 5;
         private static readonly SemaphoreSlim DownloadingSemaphore = new SemaphoreSlim(MaxDownloading);
+        private static readonly string[] SkippingModsNames = [ "base", "space-age", "quality" ];
 
         public static readonly ObservableCollection<PackageDownloadEntry> DownloadingModsList = [];
         public static readonly Dictionary<DependencyInfo, Task> DependencyDownloadingList = [];
@@ -38,27 +42,22 @@ namespace FactorioNexus.Services
                 return Enumerable.Empty<DependencyVersionRange>();
 
             Dictionary<string, DependencyVersionRange> dependencyInlineTree = [];
-            await BuildInlineDependencyTree(release, dependencyInlineTree);
+            await BuildInlineDependencyTree(release, dependencyInlineTree, 1);
+            Debug.WriteLine("Inline dependency tree for mod \"{0}\" : [{1}]", release.FileName, string.Join(", ", dependencyInlineTree.Values));
 
             List<DependencyVersionRange> matchedDependencies = [];
             foreach (DependencyVersionRange dependency in dependencyInlineTree.Values)
             {
                 if (!await dependency.TryFindLatestMatchingRelease())
+                {
+                    Debug.WriteLine("Failed to find dependency " + dependency.ToString());
                     continue;
+                }
 
                 if (ModsStoringManager.TryFindStore(dependency, out ModStoreEntry? _))
                     continue;
 
                 matchedDependencies.Add(dependency);
-
-                /*
-                ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(dependency.ModId);
-                if (!dependencyModPage.TryFindRelease(dependency, out ReleaseInfo? dependencyRelease))
-                    continue;
- 
-                dependency.LatestMatchingRelease = dependencyRelease;
-                matchedDependencies.Add(dependency);
-                */
             } 
 
             return matchedDependencies;
@@ -69,40 +68,16 @@ namespace FactorioNexus.Services
             await QueuePackageDownloadingEntry(entry, cancellationToken);
         }
 
-        /*
-        private static async Task BuildInlineDependencyTree(ReleaseInfo release, List<DependencyInfo> tree)
+        private static async Task BuildInlineDependencyTree(ReleaseInfo release, Dictionary<string, DependencyVersionRange> inlineTree, int optionalDependencyResolveLevel)
         {
-            foreach (DependencyInfo dependency in release.ModInfo.Dependencies.Where(ValidateRequiredDependency))
-            {
-                if (!ValidateRequiredDependency(dependency))
-                    continue;
-
-                if (!FindDependency(tree, dependency))
-                    continue;
-
-                ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(dependency);
-                ReleaseInfo dependencyRelease = dependencyModPage.FindRelease(dependency);
-
-                if (dependencyRelease.ModInfo.Dependencies.Length > 0)
-                    await BuildInlineDependencyTree(dependencyRelease, tree);
-            }
-        }
-        */
-
-        private static async Task BuildInlineDependencyTree(ReleaseInfo release, Dictionary<string, DependencyVersionRange> inlineTree)
-        {
+            int myResolveLevel = optionalDependencyResolveLevel;
             foreach (DependencyInfo dependency in release.ModInfo.Dependencies)
             {
-                if (dependency.ModId == "base" || dependency.ModId == "space-age")
+                if (SkippingModsNames.Contains(dependency.ModId))
                     continue;
 
-                if (dependency.Prefix != DependencyModifier.Required)
+                if (!IsDependencyRequired(dependency, myResolveLevel))
                     continue;
-
-                /*
-                if (!ValidateRequiredDependency(dependency))
-                    continue;
-                */
 
                 if (!inlineTree.TryGetValue(dependency.ModId, out DependencyVersionRange? range))
                 {
@@ -111,16 +86,43 @@ namespace FactorioNexus.Services
                 }
                 else
                 {
+                    if (range.TweakHistory.Count(dep => dep.ModId == dependency.ModId) > 5)
+                        continue; // Recursion danger !
+
                     range.Tweak(dependency);
                 }
 
-                ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(dependency);
-                if (!dependencyModPage.TryFindRelease(range, out ReleaseInfo? dependencyRelease))
-                    dependencyRelease = dependencyModPage.DisplayLatestRelease;
+                try
+                {
+                    ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(dependency);
+                    if (!dependencyModPage.TryFindRelease(range, out ReleaseInfo? dependencyRelease))
+                        continue; //dependencyRelease = dependencyModPage.DisplayLatestRelease;
 
-                if (dependencyRelease.ModInfo.Dependencies.Length > 0)
-                    await BuildInlineDependencyTree(dependencyRelease, inlineTree);
+                    if (dependencyRelease.ModInfo.Dependencies.Length > 0)
+                        await BuildInlineDependencyTree(dependencyRelease, inlineTree, optionalDependencyResolveLevel - 1);
+                }
+                catch (RequestException rex)
+                {
+                    Debug.WriteLine("Failed to fetch mod \"{0}\" during dependencies resolutions. {1}", [dependency.ToString(), rex]);
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Failed to resolve mod \"{0}\". {1}", [dependency.ToString(), ex]);
+                    continue;
+                }
             }
+        }
+
+        private static bool IsDependencyRequired(DependencyInfo dependency, int optionalDependencyResolveLevel)
+        {
+            if (dependency.Prefix == DependencyModifier.Required)
+                return true;
+
+            if (ApplicationSettingsManager.Current.DownloadOptionalDependencies && dependency.Prefix == DependencyModifier.Optional)
+                return optionalDependencyResolveLevel > 0;
+
+            return false;
         }
 
         public static async Task QueuePackageDownloadingEntry(PackageDownloadEntry entry, CancellationToken cancellationToken = default)

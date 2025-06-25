@@ -2,7 +2,7 @@
 
 namespace FactorioNexus.ModPortal.Types
 {
-    public class DependencyInfo()
+    public class DependencyInfo() : IEquatable<DependencyInfo>
     {
         public required string ModId { get; set; }
         public DependencyModifier? Prefix { get; set; }
@@ -65,6 +65,49 @@ namespace FactorioNexus.ModPortal.Types
             VersionOperator.More => ">",
             _ => throw new ArgumentOutOfRangeException(nameof(versionOperator))
         };
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is null)
+                return false;
+
+            if (obj is not DependencyInfo dependencyInfo)
+                return false;
+
+            return Equals(dependencyInfo);
+        }
+
+        public bool Equals(DependencyInfo? other)
+        {
+            if (other == null)
+                return false;
+
+            if (ModId != other.ModId)
+                return false;
+
+            if (Prefix != other.Prefix)
+                return false;
+
+            if (Operator  != other.Operator)
+                return false;
+
+            if (Version == null && other.Version == null)
+                return true;
+
+            if (Version != null && other.Version != null)
+                return Version == other.Version;
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(
+                Prefix?.GetHashCode(),
+                ModId.GetHashCode(),
+                Operator?.GetHashCode(),
+                Version?.GetHashCode());
+        }
     }
 
     public enum VersionOperator

@@ -38,16 +38,21 @@ namespace FactorioNexus.ModPortal
 
             for (int i = 0; i < properties.Count(); i++)
             {
-                builder.Append(i == 0 ? '?' : '&');
                 PropertyInfo property = properties.ElementAt(i);
-
                 string propertyName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
                 object? propertyValue = property.GetValue(this, null);
+
                 if (propertyValue == null)
                     continue;
 
-                builder.Append(propertyName).Append('=').Append(propertyValue);
+                if (propertyValue is string str && string.IsNullOrEmpty(str))
+                    continue;
+
+                builder.Append(i == 0 ? '?' : '&').Append(propertyName).Append('=').Append(FormatParameterValue(propertyValue));
             }
         }
+
+        protected virtual string? FormatParameterValue(object propertyValue)
+            => propertyValue.ToString();
     }
 }

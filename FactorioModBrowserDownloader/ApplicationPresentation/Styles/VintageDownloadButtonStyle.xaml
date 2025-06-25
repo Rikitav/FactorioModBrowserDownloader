@@ -13,10 +13,9 @@
                             <DropShadowEffect BlurRadius="10" ShadowDepth="3" Direction="270" Color="Black"/>
                         </controls:ClippingBorder.Effect>
 
-                        <Grid x:Name="panel" Background="#5EB663">
-                            <controls:ShadowOverlayBorder Panel.ZIndex="1"/>
+                        <controls:ShadowOverlayBorder x:Name="panel" Background="#5EB663">
                             <ContentPresenter Content="{Binding Content, RelativeSource={RelativeSource Mode=TemplatedParent}}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Grid>
+                        </controls:ShadowOverlayBorder>
                     </controls:ClippingBorder>
 
                     <!-- Triggers -->
@@ -34,7 +33,12 @@
                         </Trigger>
 
                         <Trigger Property="IsDownloading" Value="True">
-                            <Setter Property="DisplayString" Value="Downloading"/>
+                            <Setter Property="DisplayString" Value="Downloading..."/>
+                            <Setter Property="IsEnabled" Value="False"/>
+                        </Trigger>
+                        
+                        <Trigger Property="IsAwaitingDependencies" Value="True">
+                            <Setter Property="DisplayString" Value="Waiting Deps..."/>
                             <Setter Property="IsEnabled" Value="False"/>
                         </Trigger>
 

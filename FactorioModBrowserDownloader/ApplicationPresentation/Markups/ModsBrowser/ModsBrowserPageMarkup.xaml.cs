@@ -1,15 +1,20 @@
-﻿using System.Windows.Controls;
+﻿using FactorioNexus.ApplicationPresentation.Extensions;
+using System.Windows.Controls;
 
 namespace FactorioNexus.ApplicationPresentation.Markups.ModsBrowser
 {
-    /// <summary>
-    /// Логика взаимодействия для ModBrowserPageMarkup.xaml
-    /// </summary>
     public partial class ModsBrowserPageMarkup : UserControl
     {
         public ModsBrowserPageMarkup()
         {
             InitializeComponent();
+        }
+
+        protected override void OnInitialized(EventArgs e)
+        {
+            base.OnInitialized(e);
+            ViewModelBase model = (ViewModelBase)DataContext;
+            model.ViewInitialized = true;
         }
 
         public void ScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -18,7 +23,7 @@ namespace FactorioNexus.ApplicationPresentation.Markups.ModsBrowser
             ModsBrowserViewModel model = (ModsBrowserViewModel)DataContext;
 
             double delta = scroll.ScrollableHeight - scroll.ContentVerticalOffset;
-            model.RequireListExtending = delta < 500;
+            model.RequireListExtending = delta < 3000;
         }
     }
 }

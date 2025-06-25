@@ -11,6 +11,7 @@ namespace FactorioNexus.Services
     {
         Queued,
 
+        ResolvingDependencies,
         Downloading,
         Extracting,
         AwaitingDependencies,
@@ -37,13 +38,11 @@ namespace FactorioNexus.Services
         public override string ModId => _modPageFullInfo.ModId;
 
         protected override async Task<Stream> DownloadPackageInternal(CancellationToken cancellationToken = default(CancellationToken))
-            => await FactorioNexusClient.Instance.DownloadPackage(_modPageFullInfo, _releaseInfo, cancellationToken);
-
-        public override async Task<DirectoryInfo?> StartDownload()
         {
             List<Task> downloadingTasks = [];
             List<string> dependenciesNames = [];
 
+            Status = ModStoreStatus.ResolvingDependencies;
             foreach (DependencyVersionRange dependency in await ModsDownloadingManager.ScanRequiredDependencies(_releaseInfo))
             {
                 DependencyDownloadEntry dependencyDownload = new DependencyDownloadEntry(dependency);
@@ -53,14 +52,15 @@ namespace FactorioNexus.Services
                 downloadingTasks.Add(dependencyDownloadTask);
             }
 
-            Task<DirectoryInfo?> ModDownloadingTask = base.StartDownload();
-            downloadingTasks.Add(ModDownloadingTask);
+            Status = ModStoreStatus.Downloading;
+            Stream pckgStream = await FactorioNexusClient.Instance.DownloadPackage(_modPageFullInfo, _releaseInfo, cancellationToken);
             Debug.WriteLine("Downloading \"{0}\" mod package with dependencies [{1}]", [ModId, string.Join(", ", dependenciesNames)]);
 
+            Status = ModStoreStatus.AwaitingDependencies;
             await Task.WhenAll(downloadingTasks);
-            Debug.WriteLine("Downloading session for mod \"{0}\" ended succesfully", [ModId]);
+            Debug.WriteLine("Downloading session for mod \"{0}\" ended successfully", [ModId]);
 
-            return await ModDownloadingTask;
+            return pckgStream;
         }
     }
 
@@ -77,7 +77,7 @@ namespace FactorioNexus.Services
         public ModStoreStatus Status
         {
             get => _downloadingStatus;
-            private set => Set(ref _downloadingStatus, value);
+            protected set => Set(ref _downloadingStatus, value);
         }
 
         public ModDownloadProgress DownloadingProgress
@@ -171,7 +171,10 @@ namespace FactorioNexus.Services
 
             using ZipArchive zipArchive = new ZipArchive(modArchiveStream);
             zipArchive.ExtractToDirectory(extractTo, true);
-            return Path.Combine(extractTo, zipArchive.Entries.ElementAt(0).Name);
+
+            string firstEntry = zipArchive.Entries.ElementAt(0).FullName;
+            string dirNname = firstEntry.Split('\\', '/').ElementAt(0);
+            return Path.Combine(extractTo, dirNname);
         }
 
         protected abstract Task<Stream> DownloadPackageInternal(CancellationToken cancellationToken = default);

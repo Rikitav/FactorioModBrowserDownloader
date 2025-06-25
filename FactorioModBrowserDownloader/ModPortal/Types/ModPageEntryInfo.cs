@@ -12,7 +12,7 @@ namespace FactorioNexus.ModPortal.Types
         /// Returns <see cref="LatestRelease"/> or first release in <see cref="Releases"/> if <see cref="LatestRelease"/> is null
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-        public ReleaseInfo DisplayLatestRelease => LatestRelease ?? Releases?.LastOrDefault() ?? throw new MissingMemberException("Mod page doesn't have any releases");
+        public ReleaseInfo DisplayLatestRelease => LatestRelease ?? Releases?.LastOrDefault() ?? throw new MissingMemberException("\"" + ModId + "\" doesn't have any releases");
 
         /// <summary>
         /// The latest version of the mod available for download. Absent when the namelist parameter is used.
@@ -70,11 +70,7 @@ namespace FactorioNexus.ModPortal.Types
 
         public bool TryFindRelease(DependencyVersionRange dependency, [NotNullWhen(true)] out ReleaseInfo? release)
         {
-            ReleaseInfo[]? searchSpan = Releases ?? [LatestRelease ?? throw new MissingMemberException("Mod page doesn't have any releases")];
-
-            //ReleaseInfo? release = searchSpan.FirstOrDefault(dependency.IsInside);
-            //return release ?? throw new KeyNotFoundException("Release matching this dependency is not found");
-
+            ReleaseInfo[]? searchSpan = Releases ?? [LatestRelease ?? throw new MissingMemberException("\"" + ModId + "\" doesn't have any releases")];
             release = searchSpan.LastOrDefault(dependency.IsInside);
             return release != null;
         }

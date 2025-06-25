@@ -1,19 +1,42 @@
-﻿using FactorioNexus.ModPortal.Types;
+﻿using FactorioNexus.ModPortal;
+using FactorioNexus.ModPortal.Types;
+using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FactorioNexus.Services
 {
     public class DependencyVersionRange
     {
+        private readonly List<DependencyInfo> _tweakHistory;
+
         private ReleaseInfo? _latestMatchingReleaseInfo;
+        private Version? _top;
+        private Version? _bottom;
+
         private bool _isTopStrong = false;
         private bool _isBottomStrong = false;
-        private bool _isEqual = false;
+        //private bool _isEqual = false;
+
+        public IEnumerable<DependencyInfo> TweakHistory
+        {
+            get => _tweakHistory;
+        }
 
         public string ModId
         {
             get;
             private set;
+        }
+
+        public bool HasBottomBound
+        {
+            get => _bottom != null;
+        }
+
+        public bool HasTopBound
+        {
+            get => _top != null;
         }
 
         public ReleaseInfo? LatestMatchingRelease
@@ -22,19 +45,24 @@ namespace FactorioNexus.Services
             private set => _latestMatchingReleaseInfo = value;
         }
 
-        private Version? _top;
-        private Version? _bottom;
-
         public DependencyVersionRange(DependencyInfo initDependency)
         {
+            _tweakHistory = [initDependency];
             ModId = initDependency.ModId;
             Tweak(initDependency);
         }
 
         public async Task<bool> TryFindLatestMatchingRelease()
         {
-            ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(ModId);
-            return dependencyModPage.TryFindRelease(this, out _latestMatchingReleaseInfo);
+            try
+            {
+                ModPageFullInfo dependencyModPage = await ModsBrowsingManager.FetchFullModInfo(ModId);
+                return dependencyModPage.TryFindRelease(this, out _latestMatchingReleaseInfo);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public bool IsInside(ModStoreEntry store)
@@ -45,35 +73,14 @@ namespace FactorioNexus.Services
 
         public bool IsInside(Version version)
         {
-            /*
-            bool fitTopBound = _isTopStrong ? release.Version < _top : release.Version <= _top;
-            bool fitBottomBound = _isBottomStrong ? release.Version > _bottom : release.Version >= _bottom;
-            return fitTopBound && fitBottomBound;
-            */
-
-            if (_isEqual)
-                return version.Equals(_top);
-
-            bool fitTopBound = false;
-            bool fitBottomBound = false;
-
-            if (_top != null)
-                fitTopBound = _isTopStrong ? version < _top : version <= _top;
-
-            if (_bottom != null)
-                fitBottomBound = _isBottomStrong ? version > _bottom : version >= _bottom;
-
-            if (_top != null && _bottom != null)
-                return fitTopBound && fitBottomBound;
-
-            if (_top != null)
-                return fitTopBound;
-
-            if (_bottom != null)
-                return fitBottomBound;
-
-            return false;
+            return FitBottomBound(version) & FitTopBound(version);
         }
+
+        private bool FitBottomBound(Version version)
+            => !HasBottomBound || (_isBottomStrong ? version > _bottom : version >= _bottom);
+
+        private bool FitTopBound(Version version)
+            => !HasTopBound || (_isTopStrong ? version < _top : version <= _top);
 
         public void Tweak(DependencyInfo dependency)
         {
@@ -83,8 +90,10 @@ namespace FactorioNexus.Services
             if (dependency.Version == null)
                 return; // Any version
 
+            /*
             if (_isEqual)
                 return; // no need to tweak range anymore as exact needed verion already found
+            */
 
             switch (dependency.Operator)
             {
@@ -112,7 +121,7 @@ namespace FactorioNexus.Services
                     {
                         _top = dependency.Version;
                         _bottom = dependency.Version;
-                        _isEqual = true;
+                        //_isEqual = true;
                         break;
                     }
 
@@ -136,6 +145,8 @@ namespace FactorioNexus.Services
                         break;
                     }
             }
+
+            _tweakHistory.Add(dependency);
         }
 
         public override string ToString()
@@ -146,9 +157,9 @@ namespace FactorioNexus.Services
             if (_top != null || _bottom != null)
             {
                 dependency.Append(" (");
-                if (_isEqual)
+                if (false) //_isEqual)
                 {
-                    dependency.Append("= ").Append(_top ?? _bottom);
+                    //dependency.Append("= ").Append(_top ?? _bottom);
                 }
                 else
                 {
@@ -160,7 +171,7 @@ namespace FactorioNexus.Services
                         dependency.Append(' ').Append(_isBottomStrong ? ">" : ">=").Append(' ').Append(_bottom);
                 }
 
-                dependency.Append(")");
+                dependency.Append(')');
             }
 
             return dependency.ToString();

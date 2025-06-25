@@ -22,7 +22,6 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
 
             field = value;
             RaisePropertyChanged(propertyName);
-            OnPropertyChanged(propertyName);
         }
 
         protected void Set(Action action, [CallerMemberName] string? propertyName = null)
@@ -32,7 +31,6 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
 
             action.Invoke();
             RaisePropertyChanged(propertyName);
-            OnPropertyChanged(propertyName);
         }
 
         protected T Get<T>(ref T? field, Func<T> defaultValue, [CallerMemberName] string? propertyName = null)
@@ -44,7 +42,6 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
             {
                 field = defaultValue.Invoke();
                 RaisePropertyChanged(propertyName);
-                OnPropertyChanged(propertyName);
             }
 
             return field;
@@ -52,7 +49,11 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
 
         protected void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
         {
+            if (propertyName == null)
+                throw new ArgumentNullException(nameof(propertyName));
+
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            OnPropertyChanged(propertyName);
         }
 
         protected virtual void OnPropertyChanged(string propertyName)

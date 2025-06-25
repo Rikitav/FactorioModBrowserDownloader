@@ -121,6 +121,7 @@ namespace FactorioNexus.Services
         {
             nameof(String) => stringValue,
             nameof(Int32) => int.Parse(stringValue),
+            nameof(Boolean) => bool.Parse(stringValue),
             _ => null
         };
 
@@ -131,13 +132,21 @@ namespace FactorioNexus.Services
     public class SettingsContainer : ViewModelBase
     {
         private static readonly string _gamedataDirectory_Default = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Factorio");
+        private static readonly bool _downloadOptionalDependencies_Default = false;
 
         private string? _gamedataDirectory = null;
+        private bool? _downloadOptionalDependencies = null;
 
         public string GamedataDirectory
         {
             get => _gamedataDirectory ?? _gamedataDirectory_Default;
             set => Set(ref _gamedataDirectory, value);
+        }
+
+        public bool DownloadOptionalDependencies
+        {
+            get => _downloadOptionalDependencies ?? _downloadOptionalDependencies_Default;
+            set => Set(ref _downloadOptionalDependencies, value);
         }
 
         public bool HasValue(string propertyValue) => null != (propertyValue switch

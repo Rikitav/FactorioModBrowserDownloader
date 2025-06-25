@@ -41,6 +41,12 @@ namespace FactorioNexus.ApplicationPresentation.Controls
             set => SetValue(IsDownloadingProperty, value);
         }
 
+        public bool IsAwaitingDependencies
+        {
+            get => (bool)GetValue(IsAwaitingDependenciesProperty);
+            set => SetValue(IsAwaitingDependenciesProperty, value);
+        }
+
         public bool IsExtracting
         {
             get => (bool)GetValue(IsExtractingProperty);
@@ -220,6 +226,10 @@ namespace FactorioNexus.ApplicationPresentation.Controls
 
         public static readonly DependencyProperty IsDownloadingProperty = DependencyProperty.Register(
             nameof(IsDownloading), typeof(bool), typeof(ModDownloadingButton),
+            new PropertyMetadata(false));
+
+        public static readonly DependencyProperty IsAwaitingDependenciesProperty = DependencyProperty.Register(
+            nameof(IsAwaitingDependencies), typeof(bool), typeof(ModDownloadingButton),
             new PropertyMetadata(false));
 
         public static readonly DependencyProperty IsExtractingProperty = DependencyProperty.Register(

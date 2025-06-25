@@ -53,19 +53,21 @@ namespace FactorioNexus.ModPortal.Converters
 
                 DependencyInfo dependency = new DependencyInfo()
                 {
-                    ModId = match.Groups[2].Value
+                    ModId = match.Groups["modId"].Value,
+                    Prefix = DependencyModifier.Required
                 };
 
-                if (!match.Groups[1].Success)
-                    dependency.Prefix = DependencyModifier.Required;
-                else if (DependencyPrefix.TryGetValue(match.Groups[0].Value, out DependencyModifier prefix))
+                if (match.Groups["prefix"].Success && DependencyPrefix.TryGetValue(match.Groups["prefix"].Value, out DependencyModifier prefix))
                     dependency.Prefix = prefix;
 
-                if (match.Groups[3].Success && DependencyOperators.TryGetValue(match.Groups[3].Value, out VersionOperator versionOperator))
-                    dependency.Operator = versionOperator;
+                if (match.Groups["operator"].Success && match.Groups["version"].Success)
+                {
+                    if (DependencyOperators.TryGetValue(match.Groups["operator"].Value, out VersionOperator versionOperator))
+                        dependency.Operator = versionOperator;
 
-                if (match.Groups[4].Success && Version.TryParse(match.Groups[4].Value, out Version? version))
-                    dependency.Version = version;
+                    if (Version.TryParse(match.Groups["version"].Value, out Version? version))
+                        dependency.Version = version;
+                }
 
                 dependencies.Add(dependency);
             }
@@ -78,7 +80,7 @@ namespace FactorioNexus.ModPortal.Converters
             throw new NotImplementedException();
         }
 
-        [GeneratedRegex(@"((?:\?|\!|\(\?\)|\~))?\s*(\S+)\s*((?:\<|\<\=|\=|\>\=|\>))?\s*(\S+)?")]
+        [GeneratedRegex(@"(?:(?'prefix'[?!~]|\(\?\)) )?(?'modId'\w[\w- ]+\w+?)( (?'operator'<|<=|=|>=|>) (?'version'\S+))?")]
         private static partial Regex DependencyParserRegex();
     }
 }

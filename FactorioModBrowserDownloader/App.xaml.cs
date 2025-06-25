@@ -11,6 +11,7 @@ namespace FactorioNexus
         public App()
         {
 #if DEBUG
+            Console.Clear();
             Trace.Listeners.Add(new ConsoleTraceListener());
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 #endif
