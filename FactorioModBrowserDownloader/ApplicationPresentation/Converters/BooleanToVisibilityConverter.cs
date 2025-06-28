@@ -11,7 +11,7 @@ namespace FactorioNexus.ApplicationPresentation.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is not bool state)
-                throw new ArgumentException();
+                throw new ArgumentException("parameter must be string type", nameof(value));
 
             if (parameter is bool param && param)
                 state = !state;
