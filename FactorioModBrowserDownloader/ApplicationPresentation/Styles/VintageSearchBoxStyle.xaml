@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:FactorioNexus.ApplicationPresentation.Controls">
 
-    <Style x:Key="VintageSearchBoxStyle" TargetType="controls:SearchBox">
+    <Style TargetType="controls:SearchBox">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="FontSize" Value="20"/>
         <Setter Property="PlaceholderForeground" Value="#7F6453"/>

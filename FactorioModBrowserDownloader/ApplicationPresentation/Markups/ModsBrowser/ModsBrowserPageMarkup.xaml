@@ -16,20 +16,16 @@
     
     <DockPanel>
         <controls:ShadowOverlayBorder DockPanel.Dock="Top" Height="40" CornerRadius="5" Background="#242324" Margin="10,10,10,0">
-            <Grid>
-                <!--controls:ShadowOverlayBorder CornerRadius="5" Margin="6,6,100,6" Background="#F0DAB4">
-                    <Grid>
-                        <Label Panel.ZIndex="1" Content="Search..." Visibility="{Binding NameSearchText, Mode=OneWayToSource, Converter={converters:TextToHintVisibilityConverter}}" Foreground="#7F6453" FontSize="20" Margin="10,-5,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" IsHitTestVisible="False"/>
-                        <TextBox Background="Transparent" Margin="14,-1,-1,-1" TextWrapping="NoWrap" VerticalAlignment="Center" BorderThickness="0" FontSize="20" Text="{Binding NameSearchText}"/>
-                    </Grid>
-                </controls:ShadowOverlayBorder-->
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Margin="0,6,6,6" Width="30" Command="{Binding RefreshModsListCommand}">
+                    <Image Source="{DynamicResource arrow_rotate}" Margin="3"/>
+                </Button>
+                
+                <ComboBox DockPanel.Dock="Right" Width="100" Margin="0,6,6,6"/>
+                <Label DockPanel.Dock="Right" Content="Sort :" Foreground="White" VerticalContentAlignment="Center"/>
 
-                <controls:SearchBox Margin="6,6,100,6" TextChangeInterval="0:0:0:1" IntervalledText="{Binding NameSearchText}" Style="{DynamicResource VintageSearchBoxStyle}"/>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,6,6">
-                    <Button Width="30" Command="{Binding RefreshModsListCommand}"/>
-                </StackPanel>
-            </Grid>
+                <controls:SearchBox Margin="6,6,10,6" TextChangeInterval="0:0:0:1" Foreground="Black" IntervalledText="{Binding NameSearchText}"/>
+            </DockPanel>
         </controls:ShadowOverlayBorder>
 
         <controls:ShadowOverlayBorder DockPanel.Dock="Left" CornerRadius="5" Width="200" Margin="10,10,0,10">
@@ -64,9 +60,16 @@
 
                 <GroupBox Tag="Factorio version">
                     <StackPanel Margin="5,0,0,0">
-                        <ComboBox ItemsSource="{Binding GameVersionSelections}" SelectedValue="{Binding SelectedGameVersion}" SelectedIndex="8" Margin="0,0,10,0"/>
+                        <ComboBox ItemsSource="{Binding GameVersionSelections}" SelectedValue="{Binding SelectedGameVersion}" SelectedIndex="8" Height="25" Margin="0,0,10,0">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Foreground="White" FontSize="15"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        
                         <CheckBox IsChecked="{Binding IncludeDeprecatedMods}" Margin="0,5,0,0" Command="{Binding RefreshModsListCommand}" Height="20">
-                            <Label Content="Include deprecated mods" FontSize="15" Margin="0,-7,0,0" Foreground="White"/>
+                            <Label Content="Include deprecated mods" FontSize="15" Margin="0,-7,0,0" Foreground="Black"/>
                         </CheckBox>
                     </StackPanel>
                 </GroupBox>
@@ -105,4 +108,16 @@
             </StackPanel>
         </Grid>
     </DockPanel>
+
+    <UserControl.Resources>
+        
+        <DrawingImage x:Key="arrow_rotate">
+            <DrawingImage.Drawing>
+                <DrawingGroup ClipGeometry="M0,0 V512 H512 V0 H0 Z">
+                    <GeometryDrawing Brush="#FF000000" Geometry="F1 M512,512z M0,0z M386.3,160L336,160C318.3,160 304,174.3 304,192 304,209.7 318.3,224 336,224L464,224C481.7,224,496,209.7,496,192L496,64C496,46.3 481.7,32 464,32 446.3,32 432,46.3 432,64L432,115.2 414.4,97.6C326.9,10.1 185.1,10.1 97.6,97.6 10.1,185.1 10.1,326.9 97.6,414.4 185.1,501.9 326.9,501.9 414.4,414.4 426.9,401.9 426.9,381.6 414.4,369.1 401.9,356.6 381.6,356.6 369.1,369.1 306.6,431.6 205.3,431.6 142.8,369.1 80.3,306.6 80.3,205.3 142.8,142.8 205.3,80.3 306.6,80.3 369.1,142.8L386.3,160z" />
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+    
+    </UserControl.Resources>
 </UserControl>

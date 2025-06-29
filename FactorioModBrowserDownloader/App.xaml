@@ -10,6 +10,9 @@
                 <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageCheckBoxStyle.xaml"/>
                 <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageDownloadButtonStyle.xaml"/>
                 <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageSearchBoxStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageTabItemStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageComboBoxStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageButtonStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

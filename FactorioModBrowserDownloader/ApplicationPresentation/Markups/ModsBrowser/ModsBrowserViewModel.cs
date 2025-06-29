@@ -303,7 +303,7 @@ public class ModsBrowserViewModel : ViewModelBase
                     if (!ViewInitialized)
                         return;
 
-                    ModsBrowsingManager.ShowDeprecated = IncludeDeprecatedMods;
+                    //ModsBrowsingManager.ShowDeprecated = IncludeDeprecatedMods;
                     RefreshModsListCommand.Execute(null);
                     break;
                 }
@@ -316,7 +316,7 @@ public class ModsBrowserViewModel : ViewModelBase
                     if (string.IsNullOrEmpty(SelectedGameVersion))
                         return;
 
-                    ModsBrowsingManager.GameVersion = Version.Parse(SelectedGameVersion);
+                    //ModsBrowsingManager.GameVersion = Version.Parse(SelectedGameVersion);
                     RefreshModsListCommand.Execute(null);
                     break;
                 }
@@ -326,7 +326,7 @@ public class ModsBrowserViewModel : ViewModelBase
                     if (!ViewInitialized)
                         return;
 
-                    ModsBrowsingManager.NameFilter = NameSearchText;
+                    //ModsBrowsingManager.NameFilter = NameSearchText;
                     RefreshModsListCommand.Execute(null);
                     break;
                 }

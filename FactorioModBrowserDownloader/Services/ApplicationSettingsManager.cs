@@ -1,24 +1,31 @@
 ﻿using FactorioNexus.ApplicationPresentation.Extensions;
+using FactorioNexus.ModPortal.Converters;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FactorioNexus.Services
 {
     public static partial class ApplicationSettingsManager
     {
         private static readonly object IoSyncObj = new object();
+        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions()
+        {
+            AllowTrailingCommas = true,
+            PropertyNameCaseInsensitive = false,
+            WriteIndented = true
+        };
 
         private static string ConfigFilePath
         {
             get
             {
-                string nearAppCfgPath = Path.Combine(Environment.CurrentDirectory, "config.cfg");
+                string nearAppCfgPath = Path.Combine(Environment.CurrentDirectory, "config.json");
                 if (Directory.Exists(nearAppCfgPath))
                     return nearAppCfgPath;
 
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "factorio-nexus", "config.cfg");
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "factorio-nexus", "config.json");
             }
         }
 
@@ -31,128 +38,76 @@ namespace FactorioNexus.Services
         static ApplicationSettingsManager()
         {
             Current = new SettingsContainer();
+
+            //File.WriteAllText(ConfigFilePath, JsonSerializer.Serialize(Current));
+            
             LoadSettings();
-        }
-
-        public static void SaveSettings()
-        {
-            lock (IoSyncObj)
-            {
-                // Checking if file exists
-                string configFilePath = ConfigFilePath;
-                if (File.Exists(configFilePath))
-                    File.Delete(configFilePath); // Deleting if exists
-
-                // Creating new config file
-                using StreamWriter configWriter = File.CreateText(configFilePath);
-                foreach (PropertyInfo property in Current.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
-                {
-                    try
-                    {
-                        // Checking if property has value
-                        if (!Current.HasValue(property.Name))
-                            continue;
-
-                        // Getting value to write
-                        object? value = property.GetValue(Current, null);
-                        if (value == null)
-                            continue;
-
-                        // Formatting and writing value
-                        string formatedLine = string.Format("{0} = {1}", property.Name, value);
-                        configWriter.WriteLine(formatedLine);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("Failed to write property {0}. {1}", [property.Name, ex]);
-                        continue;
-                    }
-                }
-            }
         }
 
         public static void LoadSettings()
         {
             lock (IoSyncObj)
             {
-                // Creating new container
-                Current = new SettingsContainer();
-                Type containerType = Current.GetType();
-                Regex lineParser = LineParserRegex();
-
-                // Checking if file exists
-                string configFilePath = ConfigFilePath;
-                if (!File.Exists(configFilePath))
-                    return; // Leave container with default values if doesn't exists
-
-                // Reading config file's lines
-                foreach (string line in File.ReadLines(configFilePath))
+                using FileStream configStream = File.OpenRead(ConfigFilePath);
+                SettingsContainer? container = JsonSerializer.Deserialize<SettingsContainer>(configStream);
+                if (container == null)
                 {
-                    try
-                    {
-                        // Trying to match the config line. Pattern 'name = value'
-                        Match match = lineParser.Match(line);
-                        if (!match.Success)
-                            continue;
-
-                        // Getting property associated with this property
-                        PropertyInfo? property = containerType.GetProperty(match.Groups[1].Value, BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public);
-                        if (property == null)
-                            continue;
-
-                        // Trying to cast parsed value to property's type
-                        object? settingValue = CastPropertyValue(property.PropertyType.Name, match.Groups[2].Value);
-                        if (settingValue == null)
-                            continue;
-
-                        // Setting container property with parsed value
-                        property.SetValue(Current, settingValue);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("Faile to parse line {0}. {1}", [line, ex]);
-                        continue;
-                    }
+                    container = new SettingsContainer();
+                    Debug.WriteLine("Settings container deserialization returned NULL instance! Default values assigned");
                 }
+
+                ValidateDeserializedContainer(container);
+                Current = container;
             }
         }
 
-        private static object? CastPropertyValue(string typeName, string stringValue) => typeName switch
+        private static void ValidateDeserializedContainer(SettingsContainer container)
         {
-            nameof(String) => stringValue,
-            nameof(Int32) => int.Parse(stringValue),
-            nameof(Boolean) => bool.Parse(stringValue),
-            _ => null
-        };
+            if (string.IsNullOrEmpty(container.GamedataDirectory))
+                throw new ApplicationException("\'GamedataDirectory\' setting cannot be null or empty");
 
-        [GeneratedRegex(@"(\S+)\s*=\s*(\S+)")]
-        private static partial Regex LineParserRegex();
+            if (!Directory.Exists(container.GamedataDirectory))
+                throw new ApplicationException("\'GamedataDirectory\' contains invalid directory path (" + container.GamedataDirectory + ")");
+        }
     }
 
     public class SettingsContainer : ViewModelBase
     {
         private static readonly string _gamedataDirectory_Default = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Factorio");
         private static readonly bool _downloadOptionalDependencies_Default = false;
+        private static readonly bool _dontFetchFullModsList_Default = false;
 
         private string? _gamedataDirectory = null;
         private bool? _downloadOptionalDependencies = null;
+        private bool? _dontFetchFullModsList = null;
 
+        [JsonPropertyName(nameof(GamedataDirectory)), JsonConverter(typeof(JsonFileSystemPathConverter))]
         public string GamedataDirectory
         {
             get => _gamedataDirectory ?? _gamedataDirectory_Default;
             set => Set(ref _gamedataDirectory, value);
         }
 
+        [JsonPropertyName(nameof(DownloadOptionalDependencies))]
         public bool DownloadOptionalDependencies
         {
             get => _downloadOptionalDependencies ?? _downloadOptionalDependencies_Default;
             set => Set(ref _downloadOptionalDependencies, value);
         }
 
+        [JsonPropertyName(nameof(DontFetchFullModsList))]
+        public bool DontFetchFullModsList
+        {
+            get => _dontFetchFullModsList ?? _dontFetchFullModsList_Default;
+            set => Set(ref _dontFetchFullModsList, value);
+        }
+
+        /*
         public bool HasValue(string propertyValue) => null != (propertyValue switch
         {
             nameof(GamedataDirectory) => _gamedataDirectory,
             _ => null
         });
+        */
     }
 }

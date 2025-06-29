@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace FactorioNexus.ModPortal
@@ -37,7 +38,7 @@ namespace FactorioNexus.ModPortal
         {
             httpClient = new HttpClient
             {
-                Timeout = TimeSpan.FromMinutes(10)
+                Timeout = TimeSpan.FromMinutes(1)
             };
         }
 
@@ -246,14 +247,14 @@ namespace FactorioNexus.ModPortal
 
             public static bool IsInternetConnectionAvailable()
             {
-                // Checking for any internet devices is active
+                // Checking for any Internet devices is active
                 if (!InternetGetConnectedState(out InternetConnectionState state, 0))
                 {
                     Debug.WriteLine("No internet devices online, state : {0}", [state]);
                     return false;
                 }
 
-                // Checking for server availablity
+                // Checking for server availability
                 if (!InternetCheckConnectionA(_CheckUriString, 0x00000001, 0))
                 {
                     int lastError = Marshal.GetLastWin32Error();

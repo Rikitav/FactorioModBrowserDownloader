@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace FactorioNexus.ApplicationPresentation.Extensions
 {
@@ -7,6 +8,7 @@ namespace FactorioNexus.ApplicationPresentation.Extensions
     {
         private bool _viewInitialized = false;
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
         public bool ViewInitialized
         {
             get => _viewInitialized;

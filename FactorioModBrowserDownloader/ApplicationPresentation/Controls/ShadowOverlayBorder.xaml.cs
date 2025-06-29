@@ -5,9 +5,9 @@ namespace FactorioNexus.ApplicationPresentation.Controls
 {
     public partial class ShadowOverlayBorder : UserControl
     {
-        public double CornerRadius
+        public CornerRadius CornerRadius
         {
-            get => (double)GetValue(CornerRadiusProperty);
+            get => (CornerRadius)GetValue(CornerRadiusProperty);
             set => SetValue(CornerRadiusProperty, value);
         }
 
@@ -26,19 +26,18 @@ namespace FactorioNexus.ApplicationPresentation.Controls
         public ShadowOverlayBorder()
         {
             InitializeComponent();
-            //DataContext = this;
         }
 
         public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.Register(
-            nameof(CornerRadius), typeof(object), typeof(ShadowOverlayBorder),
-            new PropertyMetadata(0d));
+            nameof(CornerRadius), typeof(CornerRadius), typeof(ShadowOverlayBorder),
+            new PropertyMetadata(default(CornerRadius)));
 
         public static readonly DependencyProperty ShadowDirectionProperty = DependencyProperty.Register(
-            nameof(ShadowDirection), typeof(object), typeof(ShadowOverlayBorder),
+            nameof(ShadowDirection), typeof(double), typeof(ShadowOverlayBorder),
             new PropertyMetadata(0d));
 
         public static readonly DependencyProperty ShadowDepthProperty = DependencyProperty.Register(
-            nameof(ShadowDepth), typeof(object), typeof(ShadowOverlayBorder),
+            nameof(ShadowDepth), typeof(double), typeof(ShadowOverlayBorder),
             new PropertyMetadata(0d));
     }
 }
