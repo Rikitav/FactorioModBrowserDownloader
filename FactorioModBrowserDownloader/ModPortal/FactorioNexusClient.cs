@@ -173,11 +173,6 @@ namespace FactorioNexus.ModPortal
 
         private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage httpRequest, CancellationToken cancellationToken = default)
         {
-            /*
-            if (!NativeMethods.IsInternetConnectionAvailable())
-                throw new RequestException("No Internet connection");
-            */
-
             try
             {
                 return await httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
@@ -222,49 +217,5 @@ namespace FactorioNexus.ModPortal
             GC.SuppressFinalize(this);
             isDisposed = true;
         }
-
-        /*
-        private static class NativeMethods
-        {
-            public enum InternetConnectionState
-            {
-                CONFIGURED = 0x40,
-                LAN = 0x02,
-                MODEM = 0x01,
-                MODEM_BUSY = 0x08,
-                OFFLINE = 0x20,
-                PROXY = 0x04
-            }
-
-            private const string _CheckUriString = @"https://sourceforge.net/projects/refind";
-            public const int ERROR_NOT_CONNECTED = 0x8CA;
-
-            [DllImport("wininet.dll", SetLastError = true)]
-            public extern static bool InternetGetConnectedState(out InternetConnectionState lpdwFlags, int dwReserved);
-
-            [DllImport("wininet.dll", SetLastError = true, CharSet = CharSet.Ansi)]
-            public extern static bool InternetCheckConnectionA(string lpszUrl, int dwFlags, int dwReserved);
-
-            public static bool IsInternetConnectionAvailable()
-            {
-                // Checking for any Internet devices is active
-                if (!InternetGetConnectedState(out InternetConnectionState state, 0))
-                {
-                    Debug.WriteLine("No internet devices online, state : {0}", [state]);
-                    return false;
-                }
-
-                // Checking for server availability
-                if (!InternetCheckConnectionA(_CheckUriString, 0x00000001, 0))
-                {
-                    int lastError = Marshal.GetLastWin32Error();
-                    Debug.WriteLine(lastError == ERROR_NOT_CONNECTED ? "No internet connection" : "Server unavailable");
-                    return false;
-                }
-
-                return true;
-            }
-        }
-        */
     }
 }

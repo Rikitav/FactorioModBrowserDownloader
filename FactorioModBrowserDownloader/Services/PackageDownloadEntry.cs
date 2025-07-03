@@ -48,7 +48,7 @@ namespace FactorioNexus.Services
                 DependencyDownloadEntry dependencyDownload = new DependencyDownloadEntry(dependency);
                 dependenciesNames.Add(dependencyDownload.ModId);
 
-                Task dependencyDownloadTask = ModsDownloadingManager.QueuePackageDownloadingEntry(dependencyDownload);
+                Task dependencyDownloadTask = ModsDownloadingManager.QueuePackageDownloadingEntry(dependencyDownload, CancellationToken.None);
                 downloadingTasks.Add(dependencyDownloadTask);
             }
 

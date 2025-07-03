@@ -32,7 +32,6 @@ public class ModsBrowserViewModel : ViewModelBase
     private string? _criticalErrorMessage = null;
 
     // Work display properties
-    private string? _currentStatus = null;
     private bool _downloading = false;
     private string? _downloadingStatus = null;
     private bool _requireListExtending = false;
@@ -84,12 +83,6 @@ public class ModsBrowserViewModel : ViewModelBase
         private set => Set(ref _criticalErrorMessage, value);
     }
 
-    public string? CurrentState
-    {
-        get => _currentStatus;
-        private set => Set(ref _currentStatus, value);
-    }
-
     public bool Downloading
     {
         get => _downloading;
@@ -134,7 +127,7 @@ public class ModsBrowserViewModel : ViewModelBase
         _categorySelections = CategoryInfo.Known.Values.Skip(1).ToCheckboxValues(RefreshModsListCommand);
         _tagSelections = TagInfo.Known.Values.ToCheckboxValues(RefreshModsListCommand);
 
-        ModsBrowsingManager.StartNewBrowser(maxPage: true);
+        //ModsBrowsingManager.StartNewBrowser(maxPage: true);
         RefreshList();
         ExtendList();
     }
@@ -174,11 +167,13 @@ public class ModsBrowserViewModel : ViewModelBase
         {
             Monitor.Enter(ExtendLock, ref acquiredLock);
 
-            Downloading = true;
-            DownloadingStatus = "Requesting entries";
-            await ModsBrowsingManager.ExtendEntries(Cancell);
+            {
+                Downloading = true;
+                DownloadingStatus = "Requesting entries";
+                await ModsBrowsingManager.ExtendEntries(Cancell);
 
-            await RequestFullMods();
+                await RequestFullMods();
+            }
         }
         catch (OperationCanceledException)
         {
@@ -196,10 +191,11 @@ public class ModsBrowserViewModel : ViewModelBase
 
             Downloading = false;
             DownloadingStatus = null;
-            CurrentState = null;
 
+            /*
             if (RequireListExtending) // && ModsBrowsingManager.CanExtend()
                 RaisePropertyChanged(nameof(RequireListExtending));
+            */
         }
     }
 
@@ -214,7 +210,7 @@ public class ModsBrowserViewModel : ViewModelBase
 
                 try
                 {
-                    CurrentState = "Requesting " + modEntry.ModId;
+                    //CurrentState = "Requesting " + modEntry.ModId;
                     ModPageFullInfo modInfo = await ModsBrowsingManager.FetchFullModInfo(modEntry, Cancell);
 
                     if (!FilterModPage(modInfo))
@@ -284,13 +280,13 @@ public class ModsBrowserViewModel : ViewModelBase
         {
             case nameof(RequireListExtending):
                 {
+                    if (!RequireListExtending)
+                        return;
+
                     if (Monitor.IsEntered(ExtendLock))
                         return;
 
                     if (IsCriticalError)
-                        return;
-
-                    if (!RequireListExtending)
                         return;
 
                     Debug.WriteLine("Extending mods list");
