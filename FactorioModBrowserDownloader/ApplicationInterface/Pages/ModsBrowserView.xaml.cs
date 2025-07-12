@@ -17,8 +17,6 @@ namespace FactorioNexus.ApplicationInterface.Pages
 
             double delta = scroll.ScrollableHeight - scroll.ContentVerticalOffset;
             model.RequireListExtending = delta < 3000;
-
-            App.Current.MainWindow.Title = delta.ToString();
         }
     }
 }
