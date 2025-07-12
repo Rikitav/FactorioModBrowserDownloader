@@ -1,18 +1,17 @@
 ﻿<Application x:Class="FactorioNexus.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:FactorioNexus"
-             StartupUri="ApplicationPresentation\Markups\MainWindow\MainWindowMarkup.xaml">
-    
+             xmlns:local="clr-namespace:FactorioNexus">
+
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageCheckBoxStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageDownloadButtonStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageSearchBoxStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageTabItemStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageComboBoxStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationPresentation/Styles/VintageButtonStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageCheckBoxStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageDownloadButtonStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageSearchBoxStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageTabItemStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageComboBoxStyle.xaml"/>
+                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageButtonStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

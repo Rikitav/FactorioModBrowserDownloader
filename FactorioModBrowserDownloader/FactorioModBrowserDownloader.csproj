@@ -22,14 +22,18 @@
 	</ItemGroup>
 
   <ItemGroup>
-	  <Resource Include="ApplicationPresentation\Markups\MainWindow\background.jpg" />
-	  <Resource Include="ApplicationPresentation\Markups\MainWindow\factorio.png" />
-	  <Resource Include="Fonts\TitilliumWeb-Bold.ttf" />
-	  <Resource Include="Fonts\TitilliumWeb-Regular.ttf" />
+	  <Resource Include="ApplicationInterface\MainWindow\background.jpg" />
+	  <Resource Include="ApplicationInterface\MainWindow\factorio.png" />
+	  <Resource Include="ApplicationInterface\Fonts\TitilliumWeb-Bold.ttf" />
+	  <Resource Include="ApplicationInterface\Fonts\TitilliumWeb-Regular.ttf" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="9.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.7" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.3" />
+    <PackageReference Include="System.Text.Json" Version="9.0.7" />
   </ItemGroup>
 
 </Project>
