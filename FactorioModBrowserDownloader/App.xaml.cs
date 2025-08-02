@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace FactorioNexus
 {
@@ -18,6 +19,8 @@ namespace FactorioNexus
     /// </summary>
     public partial class App : Application
     {
+        private static readonly object InitLock = new object();
+
         private static readonly JsonSerializerOptions SettingsSerializerOptions = new JsonSerializerOptions()
         {
             AllowTrailingCommas = true,
@@ -37,7 +40,7 @@ namespace FactorioNexus
             }
         }
 
-        public static App Instance { get; private set; }
+        public static App Instance { get; private set; } = null!;
         public static string DataDirectory => Constants.PrivateAppDataDirectory;
 
         private readonly IServiceProvider _serviceProvider = default!;
@@ -49,24 +52,31 @@ namespace FactorioNexus
 
         public App()
         {
-            if (Instance != null)
-                throw new InvalidOperationException();
+            lock (InitLock)
+            {
+                Directory.CreateDirectory(DataDirectory);
+                if (Instance != null)
+                    throw new InvalidOperationException();
 
-            AttachConsoleTrace();
-            _settings = LoadSettings();
+                AttachConsoleTrace();
+                _settings = LoadSettings();
 
-            IServiceCollection serviceCollection = new ServiceCollection();
-            ConfigureServices(serviceCollection);
-            _serviceProvider = serviceCollection.BuildServiceProvider();
+                IServiceCollection serviceCollection = new ServiceCollection();
+                ConfigureServices(serviceCollection);
+                _serviceProvider = serviceCollection.BuildServiceProvider();
 
-            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-            Instance = this;
+                AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+                Instance = this;
+            }
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            MainWindowMarkup mainWindow = ServiceProvider.GetRequiredService<MainWindowMarkup>();
-            mainWindow.Show();
+            lock (InitLock)
+            {
+                MainWindowMarkup mainWindow = ServiceProvider.GetRequiredService<MainWindowMarkup>();
+                mainWindow.Show();
+            }
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -131,15 +141,38 @@ namespace FactorioNexus
 
         private static SettingsContainer LoadSettings()
         {
-            using FileStream configStream = File.OpenRead(ConfigFilePath);
-            SettingsContainer? container = JsonSerializer.Deserialize<SettingsContainer>(configStream);
-            if (container == null)
+            string cfg = ConfigFilePath;
+            SettingsContainer? container = null;
+
+            if (!File.Exists(cfg))
+                return RecreteSettingsFile(cfg);
+
+            try
             {
-                container = new SettingsContainer();
-                Debug.WriteLine("Settings container deserialization returned NULL instance! Default values assigned");
+                using FileStream configStream = File.OpenRead(ConfigFilePath);
+                container = JsonSerializer.Deserialize<SettingsContainer>(configStream);
+                if (container == null)
+                {
+                    container = new SettingsContainer();
+                    Debug.WriteLine("Settings container deserialization returned NULL instance! Default values assigned");
+                }
+            }
+            catch
+            {
+                return RecreteSettingsFile(cfg);
             }
 
             ValidateSettingsContainer(container);
+            return container;
+        }
+
+        private static SettingsContainer RecreteSettingsFile(string cfg)
+        {
+            SettingsContainer container = new SettingsContainer();
+            string content = JsonSerializer.Serialize(container, Constants.JsonOptions);
+
+            File.Delete(cfg);
+            File.WriteAllText(cfg, content);
             return container;
         }
 
@@ -149,7 +182,11 @@ namespace FactorioNexus
                 throw new ApplicationException("\'GamedataDirectory\' setting cannot be null or empty");
 
             if (!Directory.Exists(container.GamedataDirectory))
+            {
+                return;
+
                 throw new ApplicationException("\'GamedataDirectory\' contains invalid directory path (" + container.GamedataDirectory + ")");
+            }
         }
 
         private static bool IsDesign()
