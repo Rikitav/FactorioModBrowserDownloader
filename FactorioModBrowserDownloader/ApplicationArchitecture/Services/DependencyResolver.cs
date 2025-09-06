@@ -1,12 +1,13 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Models;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace FactorioNexus.ApplicationArchitecture.Services
 {
-    public class DependencyResolver(IFactorioNexusClient client, IStoringManager storing) : DisposableBase<DependencyResolver>, IDependencyResolver
+    public class DependencyResolver(ILogger<DependencyResolver> logger, IFactorioNexusClient client, IStoringManager storing) : DisposableBase<DependencyResolver>, IDependencyResolver
     {
         private static readonly string[] SkippingModsNames = ["base", "space-age", "quality"];
+        private readonly ILogger<DependencyResolver> Logger = logger;
         private readonly IFactorioNexusClient Client = client;
         private readonly IStoringManager Storing = storing;
 
@@ -17,14 +18,14 @@ namespace FactorioNexus.ApplicationArchitecture.Services
 
             Dictionary<string, DependencyVersionRange> dependencyInlineTree = [];
             await BuildInlineDependencyTree(release, dependencyInlineTree, 0);
-            Debug.WriteLine("Inline dependency tree for mod \"{0}\" : [{1}]", release.FileName, string.Join(", ", dependencyInlineTree.Values));
+            Logger.LogInformation("Inline dependency tree for mod '{fileName}' : [{values}]", release.FileName, string.Join(", ", dependencyInlineTree.Values));
 
             List<DependencyVersionRange> matchedDependencies = [];
             foreach (DependencyVersionRange dependency in dependencyInlineTree.Values)
             {
                 if (!await dependency.TryFindLatestMatchingRelease())
                 {
-                    Debug.WriteLine("Failed to find dependency " + dependency.ToString());
+                    Logger.LogError("Failed to find dependency {dependency}", dependency.ToString());
                     continue;
                 }
 
@@ -74,12 +75,12 @@ namespace FactorioNexus.ApplicationArchitecture.Services
                 }
                 catch (RequestException rex)
                 {
-                    Debug.WriteLine("Failed to fetch mod \"{0}\" during dependencies resolutions. {1}", [dependency.ToString(), rex]);
+                    Logger.LogError(rex, "Failed to fetch mod '{id}' during dependencies resolutions.", dependency.ToString());
                     continue;
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Failed to resolve mod \"{0}\". {1}", [dependency.ToString(), ex]);
+                    Logger.LogError(ex, "Failed to resolve mod '{id}'.", dependency.ToString());
                     continue;
                 }
             }
