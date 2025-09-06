@@ -5,6 +5,7 @@ using FactorioNexus.ApplicationInterface.Dependencies;
 using FactorioNexus.ApplicationInterface.ViewModels;
 using FactorioNexus.ApplicationPresentation.Markups.MainWindow;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -58,7 +59,7 @@ namespace FactorioNexus
         protected virtual void ConfigureServices(IServiceCollection services)
         {
             // Configure Logging
-            services.AddLogging();
+            services.AddLogging(logging => logging.AddConsole());
 
             // Register Services
             services.AddSingleton<IDatabaseIndexer, DatabaseIndexer>();
