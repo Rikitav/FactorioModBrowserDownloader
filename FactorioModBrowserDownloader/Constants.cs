@@ -1,6 +1,4 @@
 ﻿using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace FactorioNexus
 {
@@ -11,6 +9,5 @@ namespace FactorioNexus
         public const string PackagesFactorioUrl = "https://mods-storage.re146.dev";
 
         public static readonly string PrivateAppDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "factorio-nexus");
-        public static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
     }
 }

@@ -1,7 +1,9 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Serialization;
+using FactorioNexus.ApplicationArchitecture.Services;
 using FactorioNexus.PresentationFramework;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -55,23 +57,46 @@ namespace FactorioNexus
 
         public static SettingsContainer LoadFromConfigFile()
         {
+            SettingsContainer? container = null;
             string configFilePath = Path.Combine(Environment.CurrentDirectory, "config.json");
+
             if (!File.Exists(configFilePath))
                 configFilePath = Path.Combine(Constants.PrivateAppDataDirectory, "config.json");
 
-            using FileStream configStream = File.OpenRead(configFilePath);
-            SettingsContainer? container = JsonSerializer.Deserialize<SettingsContainer>(configStream, serializerOptions);
+            if (!File.Exists(configFilePath))
+                return RecreteSettingsFile(configFilePath);
 
-            if (container == null)
+            try
             {
-                container = new SettingsContainer();
-                Debug.WriteLine("Settings container deserialization returned NULL instance! Default values assigned");
+                using FileStream configStream = File.OpenRead(configFilePath);
+                container = JsonSerializer.Deserialize<SettingsContainer>(configStream);
+
+                if (container == null)
+                {
+                    container = new SettingsContainer();
+                    Debug.WriteLine("Settings container deserialization returned NULL instance! Default values assigned");
+                }
+            }
+            catch
+            {
+                return RecreteSettingsFile(configFilePath);
             }
 
             ValidateSettingsContainer(container);
             return container;
         }
 
+        private static SettingsContainer RecreteSettingsFile(string cfg)
+        {
+            SettingsContainer container = new SettingsContainer();
+            string content = JsonSerializer.Serialize(container, FactorioNexusClient.JsonOptions);
+
+            File.Delete(cfg);
+            File.WriteAllText(cfg, content);
+            return container;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ValidateSettingsContainer(SettingsContainer container)
         {
             if (string.IsNullOrEmpty(container.GamedataDirectory))

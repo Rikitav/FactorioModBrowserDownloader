@@ -1,4 +1,5 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Models;
+using FactorioNexus.ApplicationArchitecture.Services;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Text.Json;
 
@@ -16,7 +17,7 @@ namespace FactorioNexus.ApplicationArchitecture.DataBases
             => provider is null ? null : CategoryInfo.Known.GetValueOrDefault(provider);
     }
 
-    public class VersionConverter : ValueConverter<Version?, string>
+    public class VersionConverter : ValueConverter<Version, string?>
     {
         public VersionConverter(ConverterMappingHints? mappingHints = null)
             : base(v => ToProvider(v), p => FromProvider(p), mappingHints) { }
@@ -34,9 +35,9 @@ namespace FactorioNexus.ApplicationArchitecture.DataBases
             : base(v => ToProvider(v), p => FromProvider(p), mappingHints) { }
 
         private static string ToProvider(TModel? model)
-            => JsonSerializer.Serialize(model, Constants.JsonOptions);
+            => JsonSerializer.Serialize(model, FactorioNexusClient.JsonOptions);
 
         private static TModel? FromProvider(string? provider)
-            => provider is null ? default : JsonSerializer.Deserialize<TModel>(provider, Constants.JsonOptions);
+            => provider is null ? default : JsonSerializer.Deserialize<TModel>(provider, FactorioNexusClient.JsonOptions);
     }
 }

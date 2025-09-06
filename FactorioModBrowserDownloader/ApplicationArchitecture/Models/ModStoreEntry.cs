@@ -1,4 +1,5 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
+using FactorioNexus.ApplicationArchitecture.Services;
 using FactorioNexus.PresentationFramework;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
@@ -54,7 +55,7 @@ namespace FactorioNexus.ApplicationArchitecture.Models
                 throw new FileNotFoundException("Mods directory does not contain info.json file!", modInfoFile.FullName);
 
             using FileStream infoStream = modInfoFile.OpenRead();
-            Info = JsonSerializer.Deserialize<ModInfo>(infoStream, Constants.JsonOptions) ?? throw new Exception("Failed to deserialize mod information");
+            Info = JsonSerializer.Deserialize<ModInfo>(infoStream, FactorioNexusClient.JsonOptions) ?? throw new Exception("Failed to deserialize mod information");
 
             if (string.IsNullOrEmpty(Info.Name))
                 throw new InvalidOperationException("Mod name of \"" + Directory.Name + "\" store cannot be null or empty");

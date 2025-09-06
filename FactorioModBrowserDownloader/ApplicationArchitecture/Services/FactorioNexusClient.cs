@@ -7,11 +7,17 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FactorioNexus.ApplicationArchitecture.Services
 {
     public class FactorioNexusClient : DisposableBase<FactorioNexusClient>, IFactorioNexusClient
     {
+        public static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
         //private const int RetryThreshold = 60;
         private const int RetryCount = 3;
 
@@ -97,7 +103,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             try
             {
                 using Stream contentStream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-                return await JsonSerializer.DeserializeAsync<T>(contentStream, Constants.JsonOptions, cancellationToken).ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception innerException)
             {

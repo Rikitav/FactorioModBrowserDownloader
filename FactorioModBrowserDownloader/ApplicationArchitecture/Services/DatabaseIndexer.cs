@@ -17,7 +17,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             foreach (JsonElement element in document.RootElement.GetProperty("results").EnumerateArray())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                ModEntryInfo? modPage = element.Deserialize<ModEntryInfo>(Constants.JsonOptions);
+                ModEntryInfo? modPage = element.Deserialize<ModEntryInfo>(FactorioNexusClient.JsonOptions);
                 if (modPage == null)
                     continue;
 

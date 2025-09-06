@@ -1,8 +1,14 @@
-﻿using FactorioNexus.ApplicationPresentation.Markups.MainWindow;
+﻿using FactorioNexus.ApplicationArchitecture.DataBases;
+using FactorioNexus.ApplicationArchitecture.Dependencies;
+using FactorioNexus.ApplicationArchitecture.Services;
+using FactorioNexus.ApplicationInterface.Dependencies;
+using FactorioNexus.ApplicationInterface.ViewModels;
+using FactorioNexus.ApplicationPresentation.Markups.MainWindow;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
-using System.Xml.Linq;
 
 namespace FactorioNexus
 {
@@ -11,57 +17,27 @@ namespace FactorioNexus
     /// </summary>
     public partial class App : Application
     {
-        private static readonly object InitLock = new object();
-
-        private static readonly JsonSerializerOptions SettingsSerializerOptions = new JsonSerializerOptions()
-        {
-            AllowTrailingCommas = true,
-            PropertyNameCaseInsensitive = false,
-            WriteIndented = true
-        };
-
-        private static string ConfigFilePath
-        {
-            get
-            {
-                string nearAppCfgPath = Path.Combine(Environment.CurrentDirectory, "config.json");
-                if (Directory.Exists(nearAppCfgPath))
-                    return nearAppCfgPath;
-
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "factorio-nexus", "config.json");
-            }
-        }
-
-        public static App Instance { get; private set; } = null!;
         public static string DataDirectory => Constants.PrivateAppDataDirectory;
+        public static IServiceProvider Services { get; private set; } = default!;
+        public static SettingsContainer Settings { get; private set; } = new SettingsContainer();
 
         public App()
         {
-            lock (InitLock)
-            {
-                Directory.CreateDirectory(DataDirectory);
-                if (Instance != null)
-                    throw new InvalidOperationException();
+            Directory.CreateDirectory(DataDirectory);
+            Settings = SettingsContainer.LoadFromConfigFile();
 
-                AttachConsoleTrace();
-                _settings = LoadSettings();
+            AttachConsoleTrace();
+            IServiceCollection serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+            Services = serviceCollection.BuildServiceProvider();
 
-                IServiceCollection serviceCollection = new ServiceCollection();
-                ConfigureServices(serviceCollection);
-                _serviceProvider = serviceCollection.BuildServiceProvider();
-
-                AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-                Instance = this;
-            }
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            lock (InitLock)
-            {
-                MainWindowMarkup mainWindow = ServiceProvider.GetRequiredService<MainWindowMarkup>();
-                mainWindow.Show();
-            }
+            MainWindowMarkup mainWindow = Services.GetRequiredService<MainWindowMarkup>();
+            mainWindow.Show();
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -122,56 +98,6 @@ namespace FactorioNexus
 
             string msg = string.Format("\"{0}\" Application's execution was faulted by unhandled exception in {1} :\n\n{2}", AppDomain.CurrentDomain.FriendlyName, sender.ToString(), exc.ToString());
             MessageBox.Show(msg, AppDomain.CurrentDomain.FriendlyName, MessageBoxButton.OK);
-        }
-
-        private static SettingsContainer LoadSettings()
-        {
-            string cfg = ConfigFilePath;
-            SettingsContainer? container = null;
-
-            if (!File.Exists(cfg))
-                return RecreteSettingsFile(cfg);
-
-            try
-            {
-                using FileStream configStream = File.OpenRead(ConfigFilePath);
-                container = JsonSerializer.Deserialize<SettingsContainer>(configStream);
-                if (container == null)
-                {
-                    container = new SettingsContainer();
-                    Debug.WriteLine("Settings container deserialization returned NULL instance! Default values assigned");
-                }
-            }
-            catch
-            {
-                return RecreteSettingsFile(cfg);
-            }
-
-            ValidateSettingsContainer(container);
-            return container;
-        }
-
-        private static SettingsContainer RecreteSettingsFile(string cfg)
-        {
-            SettingsContainer container = new SettingsContainer();
-            string content = JsonSerializer.Serialize(container, Constants.JsonOptions);
-
-            File.Delete(cfg);
-            File.WriteAllText(cfg, content);
-            return container;
-        }
-
-        private static void ValidateSettingsContainer(SettingsContainer container)
-        {
-            if (string.IsNullOrEmpty(container.GamedataDirectory))
-                throw new ApplicationException("\'GamedataDirectory\' setting cannot be null or empty");
-
-            if (!Directory.Exists(container.GamedataDirectory))
-            {
-                return;
-
-                throw new ApplicationException("\'GamedataDirectory\' contains invalid directory path (" + container.GamedataDirectory + ")");
-            }
         }
 
         private static bool IsDesign()

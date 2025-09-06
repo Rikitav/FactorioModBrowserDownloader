@@ -13,8 +13,8 @@ namespace FactorioNexus.PresentationFramework.Controls
     /// </summary>
     public partial class CurrentDownloadPresenter : UserControl
     {
-        private readonly IDownloadingManager _downloadingManager;
-        private readonly IFactorioNexusClient _nexusClient;
+        private readonly IDownloadingManager? _downloadingManager;
+        private readonly IFactorioNexusClient? _nexusClient;
 
         public bool IsDownloading
         {
@@ -38,14 +38,26 @@ namespace FactorioNexus.PresentationFramework.Controls
         {
             InitializeComponent();
 
-            _downloadingManager = App.Services.GetRequiredService<IDownloadingManager>();
-            _nexusClient = App.Services.GetRequiredService<IFactorioNexusClient>();
+            if (App.Services != null)
+            {
+                _downloadingManager = App.Services.GetRequiredService<IDownloadingManager>();
+                _nexusClient = App.Services.GetRequiredService<IFactorioNexusClient>();
+            }
             
-            _downloadingManager.DownloadingList.CollectionChanged += CollectionChanged;
+            if (_downloadingManager != null)
+            {
+                _downloadingManager.DownloadingList.CollectionChanged += CollectionChanged;
+            }
         }
 
         private async void CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
+            if (_downloadingManager == null)
+                return;
+
+            if (_nexusClient == null)
+                return;
+
             try
             {
                 CurrentDownloading = _downloadingManager.DownloadingList.FirstOrDefault();
