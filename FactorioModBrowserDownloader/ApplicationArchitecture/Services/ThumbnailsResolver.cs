@@ -6,16 +6,22 @@ using System.Windows.Media.Imaging;
 
 namespace FactorioNexus.ApplicationArchitecture.Services
 {
-    public class ThumbnailsResolver(IFactorioNexusClient client) : DisposableBase<ThumbnailsResolver>, IThumbnailsResolver
+    public class ThumbnailsResolver : DisposableBase<ThumbnailsResolver>, IThumbnailsResolver
     {
         private static readonly string NexusAppdataDirectory = Constants.PrivateAppDataDirectory;
         private const int MaxDownloading = 5;
 
         private readonly object SyncObj = new object();
-        private readonly IFactorioNexusClient Client = client;
+        private readonly IFactorioNexusClient Client;
 
         private Dictionary<string, BitmapSource> MemoryCachedThumbnails = [];
         private SemaphoreSlim DownloadingSemaphore = new SemaphoreSlim(MaxDownloading);
+
+        public ThumbnailsResolver(IFactorioNexusClient client)
+        {
+            Directory.CreateDirectory(Path.Combine(Constants.PrivateAppDataDirectory, "assets"));
+            Client = client;
+        }
 
         public async Task<BitmapSource> ResolveThumbnail(ModEntryShort modPage, CancellationToken cancellationToken = default)
         {
