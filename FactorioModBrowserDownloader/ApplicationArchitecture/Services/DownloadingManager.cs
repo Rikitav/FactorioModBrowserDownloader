@@ -1,6 +1,6 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Models;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -8,11 +8,12 @@ using System.IO;
 
 namespace FactorioNexus.ApplicationArchitecture.Services
 {
-    public class DownloadingManager(IFactorioNexusClient client, IDependencyResolver dependencyResolver, IStoringManager storingManager) : DisposableBase<DownloadingManager>, IDownloadingManager
+    public class DownloadingManager(ILogger<DownloadingManager> logger, IFactorioNexusClient client, IDependencyResolver dependencyResolver, IStoringManager storingManager) : DisposableBase<DownloadingManager>, IDownloadingManager
     {
         private const int MaxDownloading = 5;
         //private static readonly string[] SkippingModsNames = ["base", "space-age", "quality"];
 
+        private readonly ILogger<DownloadingManager> Logger = logger;
         private readonly IFactorioNexusClient Client = client;
         private readonly IDependencyResolver DependencyResolver = dependencyResolver;
         private readonly IStoringManager StoringManager = storingManager;
@@ -29,7 +30,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
                 if (TryFindEntry(modEntry.Id, out PackageDownloadEntry? entry))
                     return entry;
 
-                entry = new ModDownloadEntry(this, DependencyResolver, modEntry, release);
+                entry = new ModDownloadEntry(Logger, this, DependencyResolver, modEntry, release);
                 QueueDownloading(entry, cancellationToken);
                 return entry;
             }
@@ -47,7 +48,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
                 if (TryFindEntry(dependency.ModId, out PackageDownloadEntry? entry))
                     return entry;
 
-                entry = new DependencyDownloadEntry(dependency);
+                entry = new DependencyDownloadEntry(Logger, dependency);
                 await QueueDownloadingAsync(entry, cancellationToken);
                 return entry;
             }

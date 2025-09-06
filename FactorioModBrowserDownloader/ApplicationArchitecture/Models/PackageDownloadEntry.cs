@@ -2,6 +2,7 @@
 using FactorioNexus.ApplicationArchitecture.Services;
 using FactorioNexus.PresentationFramework;
 using FactorioNexus.PresentationFramework.Commands;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -21,7 +22,7 @@ namespace FactorioNexus.ApplicationArchitecture.Models
         Faulted
     }
 
-    public class DependencyDownloadEntry(DependencyVersionRange dependency) : PackageDownloadEntry(dependency.ModId)
+    public class DependencyDownloadEntry(ILogger<IDownloadingManager> logger, DependencyVersionRange dependency) : PackageDownloadEntry(logger, dependency.ModId)
     {
         private readonly DependencyVersionRange _dependencyInfo = dependency;
 
@@ -29,8 +30,9 @@ namespace FactorioNexus.ApplicationArchitecture.Models
             => await client.DownloadPackage(_dependencyInfo, cancellationToken);
     }
 
-    public class ModDownloadEntry(IDownloadingManager downloadingManager, IDependencyResolver dependencyResolver, ModEntryInfo modEntry, ReleaseInfo release) : PackageDownloadEntry(modEntry.Id)
+    public class ModDownloadEntry(ILogger<IDownloadingManager> logger, IDownloadingManager downloadingManager, IDependencyResolver dependencyResolver, ModEntryInfo modEntry, ReleaseInfo release) : PackageDownloadEntry(logger, modEntry.Id)
     {
+        private readonly ILogger<IDownloadingManager> _logger = logger;
         private readonly IDownloadingManager _downloadingManager = downloadingManager;
         private readonly IDependencyResolver _dependencyResolver = dependencyResolver;
         private readonly ModEntryInfo _modEntryFull = modEntry;
@@ -51,7 +53,7 @@ namespace FactorioNexus.ApplicationArchitecture.Models
 
             Status = ModStoreStatus.Downloading;
             Stream pckgStream = await client.DownloadPackage(_modEntryFull, _releaseInfo, cancellationToken);
-            Debug.WriteLine("Downloading \"{0}\" mod package with dependencies [{1}]", [ModId, string.Join(", ", dependenciesNames)]);
+            _logger.LogInformation("Downloading \"{id}\" mod package with dependencies [{dependencies}]", ModId, string.Join(", ", dependenciesNames));
 
             Status = ModStoreStatus.AwaitingDependencies;
             await Task.WhenAll(downloadingTasks);
@@ -59,9 +61,10 @@ namespace FactorioNexus.ApplicationArchitecture.Models
         }
     }
 
-    public abstract class PackageDownloadEntry(string modId) : ViewModelBase
+    public abstract class PackageDownloadEntry(ILogger<IDownloadingManager> logger, string modId) : ViewModelBase
     {
         private readonly CancellCommand _cancellCommand = new CancellCommand();
+        private readonly ILogger<IDownloadingManager> _logger = logger;
         private readonly string _modId = modId;
 
         private ModStoreStatus _downloadingStatus = ModStoreStatus.Queued;
@@ -108,7 +111,6 @@ namespace FactorioNexus.ApplicationArchitecture.Models
             try
             {
                 Working = true;
-
                 Status = ModStoreStatus.Downloading;
                 using Stream modArchiveStream = await DownloadPacakgeStream(client);
 
@@ -116,7 +118,7 @@ namespace FactorioNexus.ApplicationArchitecture.Models
                 string modDir = await ExtractMemoryArchive(modArchiveStream);
 
                 Status = ModStoreStatus.Downloaded;
-                Debug.WriteLine("Downloading session for mod \"{0}\" ended successfully", [ModId]);
+                _logger.LogInformation("Downloading session for mod '{id}' ended successfully", ModId);
                 return new DirectoryInfo(modDir);
             }
             catch (OperationCanceledException)
@@ -129,20 +131,21 @@ namespace FactorioNexus.ApplicationArchitecture.Models
             {
                 Status = ModStoreStatus.Timeout;
                 ErrorMessage = "Requesting timeout";
+                _logger.LogError(rex, "mod request timeout '{id}'", _modId);
                 return null;
             }
             catch (RequestException rex)
             {
                 Status = ModStoreStatus.Faulted;
                 ErrorMessage = "Requesting error, " + rex.Message;
+                _logger.LogError(rex, "Failed to request mod '{id}'", _modId);
                 throw;
             }
             catch (Exception ex)
             {
                 Status = ModStoreStatus.Faulted;
                 ErrorMessage = "Request faulted, " + ex.Message;
-
-                Debug.WriteLine("Failed to download mod {0}. {1}", [_modId, ex]);
+                _logger.LogError(ex, "Failed to download mod '{id}'", _modId);
                 throw;
             }
             finally
