@@ -1,4 +1,6 @@
-﻿using FactorioNexus.PresentationFramework;
+﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
+using FactorioNexus.PresentationFramework;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
@@ -33,7 +35,7 @@ namespace FactorioNexus.ApplicationArchitecture.Models
 
         public ModEntryFull? ModPage
         {
-            get => GetAsync(ref _modPage, async () => await App.Instance.Client.FetchFullModInfo(Info.Name));
+            get => GetAsync(ref _modPage, async () => await App.Services.GetRequiredService<IFactorioNexusClient>().FetchFullModInfo(Info.Name));
             private set => Set(ref _modPage, value);
         }
 

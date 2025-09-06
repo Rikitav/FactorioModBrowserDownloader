@@ -1,7 +1,5 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Models;
 using FactorioNexus.PresentationFramework;
-using FactorioNexus.PresentationFramework.Commands;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 
@@ -16,7 +14,7 @@ namespace FactorioNexus.ApplicationArchitecture.DataBases
 
     public class QueryFilterSettings : ViewModelBase
     {
-        private readonly RefreshCommand _refreshCommand;
+        private readonly ICommand _refreshCommand;
         private readonly CheckboxValueWrapper<CategoryInfo>[] _categorySelections;
         private readonly CheckboxValueWrapper<TagInfo>[] _tagSelections;
         private readonly string[] _gameVersionSelections;
@@ -70,7 +68,7 @@ namespace FactorioNexus.ApplicationArchitecture.DataBases
             set => Set(ref _sortDescending, value);
         }
 
-        public QueryFilterSettings(RefreshCommand refreshCommand)
+        public QueryFilterSettings(ICommand refreshCommand)
         {
             _refreshCommand = refreshCommand;
             _categorySelections = CategoryInfo.Known.Values.Skip(1).ToCheckboxValues(refreshCommand);

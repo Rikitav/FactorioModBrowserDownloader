@@ -91,7 +91,8 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             catch (Exception ex)
             {
                 Debug.WriteLine("Failed to download {0} entry. {1}", [entry.ModId, ex]);
-                throw;
+                //throw;
+                return;
             }
             finally
             {

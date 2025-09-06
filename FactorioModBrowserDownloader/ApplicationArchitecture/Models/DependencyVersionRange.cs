@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
+using Microsoft.Extensions.DependencyInjection;
+using System.Text;
 
 namespace FactorioNexus.ApplicationArchitecture.Models
 {
@@ -52,7 +54,7 @@ namespace FactorioNexus.ApplicationArchitecture.Models
         {
             try
             {
-                ModEntryFull dependencyModPage = await App.Instance.Client.FetchFullModInfo(ModId);
+                ModEntryFull dependencyModPage = await App.Services.GetRequiredService<IFactorioNexusClient>().FetchFullModInfo(ModId);
                 return dependencyModPage.TryFindRelease(this, out _latestMatchingReleaseInfo);
             }
             catch (Exception)

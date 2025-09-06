@@ -15,13 +15,18 @@ namespace FactorioNexus.ApplicationArchitecture.Services
 
         public ObservableCollection<ModStoreEntry> StoredMods => _storedMods;
 
+        public StoringManager()
+        {
+            ScanCurrentStorage();
+        }
+
         public async void ScanCurrentStorage(CancellationToken cancellationToken = default(CancellationToken))
         {
             await Task.Yield();
             lock (StoreReadLook)
             {
                 StoredMods.Clear();
-                DirectoryInfo storage = new DirectoryInfo(Path.Combine(App.Instance.Settings.GamedataDirectory, "Mods"));
+                DirectoryInfo storage = new DirectoryInfo(Path.Combine(App.Settings.GamedataDirectory, "Mods"));
 
                 if (!storage.Exists)
                     return;

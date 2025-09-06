@@ -10,7 +10,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
     {
         public async Task RepopulateFrom(JsonDocument document, CancellationToken cancellationToken)
         {
-            using IndexedModPortalDatabase dataBase = App.Instance.ServiceProvider.GetRequiredService<IndexedModPortalDatabase>();
+            using IndexedModPortalDatabase dataBase = App.Services.GetRequiredService<IndexedModPortalDatabase>();
             await dataBase.Database.EnsureDeletedAsync(cancellationToken);
             await dataBase.Database.EnsureCreatedAsync(cancellationToken);
 
@@ -30,7 +30,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
 
         public IEnumerable<ModEntryInfo> GetEntries(QueryFilterSettings queryFilters, CancellationToken cancellationToken = default)
         {
-            using IndexedModPortalDatabase dataBase = App.Instance.ServiceProvider.GetRequiredService<IndexedModPortalDatabase>();
+            using IndexedModPortalDatabase dataBase = App.Services.GetRequiredService<IndexedModPortalDatabase>();
             foreach (ModEntryInfo entry in dataBase.Items.Where(queryFilters.CanPass).OrderBy(queryFilters.SortDescending, queryFilters.SortSelector).Select(entity => entity.ToInfo()).ToList())
             {
                 cancellationToken.ThrowIfCancellationRequested();

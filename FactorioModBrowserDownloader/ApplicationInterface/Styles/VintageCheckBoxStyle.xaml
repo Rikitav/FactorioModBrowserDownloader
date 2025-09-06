@@ -10,10 +10,10 @@
                     <!-- Content -->
                     <StackPanel Orientation="Horizontal">
                         <controls:ClippingBorder x:Name="border" CornerRadius="3" Width="{TemplateBinding Height}">
-                            <Grid>
-                                <controls:ShadowOverlayBorder Panel.ZIndex="2"/>
-                                <Image x:Name="image" Panel.ZIndex="1" Source="{DynamicResource checkMark}" Margin="5,4,4,5"/>
-                                <Ellipse x:Name="dot" Margin="10" Fill="Orange" Visibility="Hidden"/>
+                            <Grid x:Name="panel" Background="#8E8E8E">
+                                <controls:ShadowOverlayBorder Panel.ZIndex="3"/>
+                                <Ellipse x:Name="dot" Margin="10" Fill="Orange" Opacity="1" Panel.ZIndex="2"/>
+                                <Image x:Name="image" Panel.ZIndex="1" Source="{DynamicResource checkMark}" Margin="5,4,4,5" Opacity="0"/>
                             </Grid>
                         </controls:ClippingBorder>
 
@@ -23,29 +23,71 @@
                     <!-- Triggers -->
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="DarkOrange"/>
-                        </Trigger>
-
-                        <Trigger Property="IsMouseOver" Value="False">
-                            <Setter TargetName="border" Property="Background" Value="#8E8E8E"/>
+                            <Setter TargetName="panel" Property="Background" Value="#E39827"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="#E2B26A"/>
+                                </Setter.Value>
+                            </Setter>
                         </Trigger>
 
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="dot" Property="Visibility" Value="Visible"/>
-                        </Trigger>
+                            <Setter TargetName="panel" Property="Background" Value="#F1BE64"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect BlurRadius="5" ShadowDepth="0" Color="#EFD2A0"/>
+                                </Setter.Value>
+                            </Setter>
 
-                        <Trigger Property="IsPressed" Value="False">
-                            <Setter TargetName="dot" Property="Visibility" Value="Hidden"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="dot"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="1" Duration="0:0:0.5"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="dot"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0" Duration="0:0:0.5"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
 
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="image" Property="Visibility" Value="Visible"/>
-                            <Setter TargetName="border" Property="Background" Value="DarkOrange"/>
-                        </Trigger>
+                            <Setter TargetName="panel" Property="Background" Value="DarkOrange"/>
 
-                        <Trigger Property="IsChecked" Value="False">
-                            <Setter TargetName="image" Property="Visibility" Value="Hidden"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="image"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="1" Duration="0:0:0.1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetName="image"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="0" Duration="0:0:0.1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
+                        
                     </ControlTemplate.Triggers>
 
                     <!-- Resources -->

@@ -4,10 +4,31 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:FactorioNexus.ApplicationInterface.Pages"
+      xmlns:extensions="clr-namespace:FactorioNexus.PresentationFramework.Extensions"
+      xmlns:controls="clr-namespace:FactorioNexus.PresentationFramework.Controls"
+      xmlns:converters="clr-namespace:FactorioNexus.PresentationFramework.Converters"
+      xmlns:vm="clr-namespace:FactorioNexus.ApplicationInterface.ViewModels"
+      xmlns:dependencies="clr-namespace:FactorioNexus.ApplicationInterface.Dependencies"
+      d:DataContext="{d:DesignInstance Type=vm:ModsStorageViewModelMockup}"
+      DataContext="{extensions:ViewModel Type=dependencies:IModsStorageViewModel}"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
 
     <Grid>
-        
+        <ItemsControl ItemsSource="{Binding StoredMods}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <controls:ShadowOverlayBorder>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox Margin="5,0,0,0" Height="20" Width="20"/>
+                                <Image Source="{Binding Thumbnail}" Width="30" Height="30" Margin="5" RenderOptions.BitmapScalingMode="LowQuality" RenderOptions.EdgeMode="Unspecified"/>
+                                <TextBlock Text="{Binding Info.Title}" Foreground="White" VerticalAlignment="Center" FontSize="15" Margin="10,0,0,0"/>
+                            </StackPanel>
+                        </controls:ShadowOverlayBorder>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
 </UserControl>

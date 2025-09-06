@@ -1,5 +1,6 @@
 ﻿using System.Windows.Input;
 
+#pragma warning disable CS0067
 namespace FactorioNexus.PresentationFramework.Commands
 {
     public class CancellCommand : ICommand

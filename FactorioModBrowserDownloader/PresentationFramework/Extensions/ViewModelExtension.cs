@@ -14,11 +14,18 @@ namespace FactorioNexus.PresentationFramework.Extensions
 
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            Type? toResolve = Mockup != null && DesignerProperties.GetIsInDesignMode(_dummyObject) ? Mockup : Type;
-            if (toResolve == null)
+            try
+            {
+                Type? toResolve = Mockup != null && DesignerProperties.GetIsInDesignMode(_dummyObject) ? Mockup : Type;
+                if (toResolve == null)
+                    return new object();
+
+                return App.Services.GetRequiredService(toResolve);
+            }
+            catch
+            {
                 return new object();
-            
-            return App.Instance.ServiceProvider.GetRequiredService(toResolve);
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace FactorioNexus.PresentationFramework.Controls
 {
@@ -10,6 +11,12 @@ namespace FactorioNexus.PresentationFramework.Controls
         {
             get => (bool)GetValue(IsPressedProperty);
             set => SetValue(IsPressedProperty, value);
+        }
+
+        public Geometry Path
+        {
+            get => (Geometry)GetValue(PathProperty);
+            set => SetValue(PathProperty, value);
         }
 
         protected override void OnMouseUp(MouseButtonEventArgs e)
@@ -26,6 +33,10 @@ namespace FactorioNexus.PresentationFramework.Controls
 
         public static readonly DependencyProperty IsPressedProperty = DependencyProperty.Register(
             nameof(IsPressed), typeof(bool), typeof(TabItemEx),
-            new PropertyMetadata(false));
+            new FrameworkPropertyMetadata(false));
+
+        public static readonly DependencyProperty PathProperty = DependencyProperty.Register(
+            nameof(Path), typeof(Geometry), typeof(TabItemEx),
+            new FrameworkPropertyMetadata(null));
     }
 }

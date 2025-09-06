@@ -78,8 +78,8 @@
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.1" To="0,2,0,0"/>
-                                        <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.1" To="0"/>
+                                        <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.05" To="0,2,0,0"/>
+                                        <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.05" To="0"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
@@ -87,8 +87,8 @@
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.5" To="0"/>
-                                        <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.5" To="0,0,0,2"/>
+                                        <ThicknessAnimation Storyboard.TargetName="panel" Storyboard.TargetProperty="Margin" Duration="0:0:0.3" To="0"/>
+                                        <ThicknessAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="BorderThickness" Duration="0:0:0.3" To="0,0,0,2"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>

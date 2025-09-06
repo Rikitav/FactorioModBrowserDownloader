@@ -16,7 +16,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
                 return Enumerable.Empty<DependencyVersionRange>();
 
             Dictionary<string, DependencyVersionRange> dependencyInlineTree = [];
-            await BuildInlineDependencyTree(release, dependencyInlineTree, 1);
+            await BuildInlineDependencyTree(release, dependencyInlineTree, 0);
             Debug.WriteLine("Inline dependency tree for mod \"{0}\" : [{1}]", release.FileName, string.Join(", ", dependencyInlineTree.Values));
 
             List<DependencyVersionRange> matchedDependencies = [];
@@ -90,7 +90,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             if (dependency.Modifier.IsRequired)
                 return true;
 
-            if (App.Instance.Settings.DownloadOptionalDependencies && dependency.Modifier.IsOptional)
+            if (App.Settings.DownloadOptionalDependencies && dependency.Modifier.IsOptional)
                 return optionalDependencyResolveLevel > 0;
 
             return false;

@@ -4,13 +4,14 @@ using FactorioNexus.ApplicationInterface.Dependencies;
 using FactorioNexus.PresentationFramework;
 using FactorioNexus.PresentationFramework.Commands;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace FactorioNexus.ApplicationInterface.ViewModels
 {
     public class ModsBrowserViewModelMockup : ViewModelBase, IModsBrowserViewModel
     {
-        public CancellCommand CancellCommand { get; }
-        public RefreshCommand RefreshCommand { get; }
+        public ICommand CancellCommand { get; }
+        public ICommand RefreshCommand { get; }
         public ObservableCollection<ModEntryFull> DisplayModsList { get; }
         public QueryFilterSettings QuerySettings { get; set; }
         public bool RequireListExtending { get; set; }
@@ -23,34 +24,15 @@ namespace FactorioNexus.ApplicationInterface.ViewModels
         public ModsBrowserViewModelMockup()
         {
             DisplayModsList = [];
-            CancellCommand = new CancellCommand();
-            RefreshCommand = new RefreshCommand(this);
+            CancellCommand = new MockupCommand();
+            RefreshCommand = new MockupCommand();
             QuerySettings = new QueryFilterSettings(RefreshCommand);
             ViewInitialized = true;
         }
 
         public void RefreshDisplayModsList()
         {
-            try
-            {
-                IsWorking = true;
-                WorkDescription = "Refreshing mods list";
-                DisplayModsList.Clear();
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-            catch (Exception ex)
-            {
-                IsCriticalError = true;
-                CriticalErrorMessage = ex.ToString();
-            }
-            finally
-            {
-                IsWorking = false;
-                WorkDescription = null;
-            }
+
         }
 
         public void RepopulateIndexedDatabase()

@@ -1,7 +1,6 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Models;
 using FactorioNexus.ApplicationArchitecture.Requests;
-using FactorioNexus.ApplicationArchitecture.Services;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;

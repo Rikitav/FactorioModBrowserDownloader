@@ -1,15 +1,17 @@
 ﻿using FactorioNexus.ApplicationArchitecture.DataBases;
 using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Models;
+using FactorioNexus.ApplicationArchitecture.Services;
 using FactorioNexus.ApplicationInterface.Dependencies;
 using FactorioNexus.PresentationFramework;
 using FactorioNexus.PresentationFramework.Commands;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace FactorioNexus.ApplicationInterface.ViewModels
@@ -19,12 +21,13 @@ namespace FactorioNexus.ApplicationInterface.ViewModels
         private readonly object _lock;
         private readonly ManualResetEventSlim _canQueryNext;
         private readonly CancellCommand _cancellCommand;
-        private readonly RefreshCommand _refreshCommand;
+        private readonly RelayCommand _refreshCommand;
         private readonly ObservableCollection<ModEntryFull> _displayModsList;
         private readonly QueryFilterSettings _querySettings;
 
         private readonly IFactorioNexusClient _nexusClient;
         private readonly IDatabaseIndexer _databaseIndexer;
+        private readonly ILogger<ModsBrowserViewModel> _logger;
 
         private readonly RelayCommand _repopulateCommand;
         private Thread? _refreshThread;
@@ -36,8 +39,8 @@ namespace FactorioNexus.ApplicationInterface.ViewModels
         private string? _workDescription = null;
         private string? _criticalErrorMessage = null;
 
-        public CancellCommand CancellCommand => _cancellCommand;
-        public RefreshCommand RefreshCommand => _refreshCommand;
+        public ICommand CancellCommand => _cancellCommand;
+        public ICommand RefreshCommand => _refreshCommand;
         public ObservableCollection<ModEntryFull> DisplayModsList => _displayModsList;
         public QueryFilterSettings QuerySettings => _querySettings;
 
@@ -79,26 +82,30 @@ namespace FactorioNexus.ApplicationInterface.ViewModels
             set => Set(ref _criticalErrorMessage, value);
         }
 
-        public ModsBrowserViewModel(IFactorioNexusClient nexusClient, IDatabaseIndexer databaseIndexer)
+        public ModsBrowserViewModel(IFactorioNexusClient nexusClient, IDatabaseIndexer databaseIndexer, ILogger<ModsBrowserViewModel> logger)
         {
             _nexusClient = nexusClient;
             _databaseIndexer = databaseIndexer;
+            _logger = logger;
 
             _lock = new object();
             _displayModsList = [];
             _canQueryNext = new ManualResetEventSlim(true);
-            _repopulateCommand = new RelayCommand(_ => RepopulateIndexedDatabase());
             _cancellCommand = new CancellCommand();
-            _refreshCommand = new RefreshCommand(this);
+            _repopulateCommand = new RelayCommand(_ => RepopulateIndexedDatabase());
+            _refreshCommand = new RelayCommand(_ => RefreshDisplayModsList());
             _querySettings = new QueryFilterSettings(_refreshCommand);
 
-            CancellCommand.CancellationRequested += (_, _) =>
+            _cancellCommand.CancellationRequested += (_, _) =>
             {
                 IsCriticalError = false;
                 CriticalErrorMessage = null;
             };
 
             ViewInitialized = true;
+            _logger.LogInformation("ModsBrowserViewModel initialized");
+
+            _refreshCommand.Execute(null);
         }
 
         public void RefreshDisplayModsList()
@@ -119,55 +126,76 @@ namespace FactorioNexus.ApplicationInterface.ViewModels
             if (parameter is null || parameter is not Thread dispatcherThread)
                 throw new Exception();
 
-            Debug.WriteLine("Refresh requested");
+            _logger.LogInformation("Browser efresh requested");
             try
             {
                 IsWorking = true;
                 WorkDescription = "Refreshing mods list";
                 Dispatcher.FromThread(dispatcherThread).Invoke(() => DisplayModsList.Clear());
 
-                int count = 0;
-                foreach (ModEntryInfo entry in _databaseIndexer.GetEntries(QuerySettings, CancellCommand.Token))
+                IEnumerable<ModEntryInfo> queriedEntries = _databaseIndexer.GetEntries(QuerySettings, _cancellCommand.Token);
+                int count = queriedEntries.Count();
+                _logger.LogInformation("Queried {count} entries from database", count);
+
+                count = 0;
+                foreach (ModEntryInfo entry in queriedEntries)
                 {
                     try
                     {
-                        _canQueryNext.Wait(CancellCommand.Token);
-                        CancellCommand.Token.ThrowIfCancellationRequested();
+                        _canQueryNext.Wait(_cancellCommand.Token);
+                        _cancellCommand.Token.ThrowIfCancellationRequested();
 
-                        ModEntryFull fullMod = await _nexusClient.FetchFullModInfo(entry, CancellCommand.Token);
+                        ModEntryFull fullMod = await _nexusClient.FetchFullModInfo(entry, _cancellCommand.Token);
                         if (!QuerySettings.CanPass(fullMod))
                             continue;
 
                         Dispatcher.FromThread(dispatcherThread).Invoke(() => DisplayModsList.Add(fullMod));
+                        _logger.LogInformation("");
                         count++;
                     }
-                    catch (TimeoutException)
+                    catch (RequestException rexc) when (rexc.Aggreagate<TimeoutException>())
                     {
-                        Debug.WriteLine("Timed out fetching mod \"{0}\"", [entry.Id]);
+                        _logger.LogError("Timed out fetching mod \"{modID}\"", entry.Id);
                         continue;
+                    }
+                    catch (RequestException rexc)
+                    {
+                        IsCriticalError = true;
+                        CriticalErrorMessage = string.Format("Failed to make a HTTP request : {0}\nPlease check you internet connection or try disabling VPN", rexc.InnerException?.Message);
+                        _logger.LogError("Failed to make a HTTP request. {exception}", rexc);
+                        return;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _ = 0xBAD + 0xC0DE;
+                        return;
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine("failed to download mod \"{0}\". {1}", [entry.Id, ex]);
+                        _logger.LogError("failed to download mod \"{modID}\". {exception}", entry.Id, ex.Message);
                         continue;
                     }
                 }
 
-                Debug.WriteLine("{0} entries queried", [count]);
+                if (count == 0)
+                {
+                    IsCriticalError = true;
+                    CriticalErrorMessage = "No mods was found by this filter options";
+                    _logger.LogError("No mods was found by this filter options");
+                    return;
+                }
             }
             catch (OperationCanceledException)
             {
+                _ = 0xBAD + 0xC0DE;
                 return;
-            }
-            catch (HttpRequestException hrexc)
-            {
-                IsCriticalError = true;
-                CriticalErrorMessage = string.Format("Failed to make a HTTP request : {0}\nPlease check you internet connection or try disabling VPN", hrexc);
             }
             catch (Exception ex)
             {
                 IsCriticalError = true;
-                CriticalErrorMessage = ex.ToString();
+                CriticalErrorMessage =  string.Format("Browser refreshing sequence was interupted by unhandled exception. {0}", ex.Message.ToString());
+                _logger.LogError("Browser refreshing sequence was interupted by unhandled exception. {exception}", ex);
+                return;
             }
             finally
             {
@@ -186,25 +214,33 @@ namespace FactorioNexus.ApplicationInterface.ViewModels
                 DisplayModsList.Clear();
 
                 WorkDescription = "Requesting database";
-                using JsonDocument document = await _nexusClient.GetModsDatabase(CancellCommand.Token);
+                using JsonDocument document = await _nexusClient.GetModsDatabase(_cancellCommand.Token);
 
                 WorkDescription = "Repopulating database";
-                await _databaseIndexer.RepopulateFrom(document, CancellCommand.Token);
+                await _databaseIndexer.RepopulateFrom(document, _cancellCommand.Token);
                 MessageBox.Show("Local database re-population completed!");
             }
             catch (OperationCanceledException)
             {
                 return;
             }
+            catch (RequestException rexc)
+            {
+                IsCriticalError = true;
+                CriticalErrorMessage = string.Format("Failed to make a HTTP request : {0}\nPlease check you internet connection or try disabling VPN", rexc);
+                return;
+            }
             catch (HttpRequestException hrexc)
             {
                 IsCriticalError = true;
                 CriticalErrorMessage = string.Format("Failed to make a HTTP request : {0}\nPlease check you internet connection or try disabling VPN", hrexc);
+                return;
             }
             catch (Exception ex)
             {
                 IsCriticalError = true;
                 CriticalErrorMessage = ex.ToString();
+                return;
             }
             finally
             {

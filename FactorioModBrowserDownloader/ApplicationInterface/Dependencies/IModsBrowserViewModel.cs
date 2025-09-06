@@ -1,15 +1,15 @@
 ﻿using FactorioNexus.ApplicationArchitecture.DataBases;
 using FactorioNexus.ApplicationArchitecture.Models;
 using FactorioNexus.PresentationFramework;
-using FactorioNexus.PresentationFramework.Commands;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace FactorioNexus.ApplicationInterface.Dependencies
 {
     public interface IModsBrowserViewModel : IViewModel
     {
-        public CancellCommand CancellCommand { get; }
-        public RefreshCommand RefreshCommand { get; }
+        public ICommand CancellCommand { get; }
+        public ICommand RefreshCommand { get; }
         public ObservableCollection<ModEntryFull> DisplayModsList { get; }
         public QueryFilterSettings QuerySettings { get; }
         public bool RequireListExtending { get; set; }

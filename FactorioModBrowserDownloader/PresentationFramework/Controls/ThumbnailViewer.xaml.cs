@@ -40,7 +40,7 @@ namespace FactorioNexus.PresentationFramework.Controls
         public ThumbnailViewer()
         {
             InitializeComponent();
-            thumbnailsResolver = App.Instance.ServiceProvider.GetRequiredService<IThumbnailsResolver>();
+            thumbnailsResolver = App.Services.GetRequiredService<IThumbnailsResolver>();
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)

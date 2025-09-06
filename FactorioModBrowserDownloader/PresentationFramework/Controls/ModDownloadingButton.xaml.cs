@@ -11,6 +11,8 @@ namespace FactorioNexus.PresentationFramework.Controls
 {
     public partial class ModDownloadingButton : Button
     {
+        private readonly IDownloadingManager _downloadingManager;
+
         public string DisplayString
         {
             get => (string)GetValue(DisplayStringProperty);
@@ -92,6 +94,8 @@ namespace FactorioNexus.PresentationFramework.Controls
         public ModDownloadingButton()
         {
             InitializeComponent();
+
+            _downloadingManager = App.Services.GetRequiredService<IDownloadingManager>();
         }
 
         private void DownloadButton_Click(object sender, RoutedEventArgs e)
@@ -106,7 +110,7 @@ namespace FactorioNexus.PresentationFramework.Controls
                 IsDownloaded = false;
                 FaultReason = string.Empty;
 
-                //DownloadEntry = ModsDownloadingManager.QueueModDownloading(ModPage, ModPage.DisplayLatestRelease);
+                DownloadEntry = _downloadingManager.QueueModDownloading(ModPage, ModPage.DisplayLatestRelease);
             }
             catch (OperationCanceledException)
             {
@@ -126,7 +130,7 @@ namespace FactorioNexus.PresentationFramework.Controls
             {
                 case nameof(ModPage):
                     {
-                        IStoringManager storingManager = App.Instance.ServiceProvider.GetRequiredService<IStoringManager>();
+                        IStoringManager storingManager = App.Services.GetRequiredService<IStoringManager>();
                         if (storingManager.TryFind(ModPage.Id, out ModStoreEntry? store))
                         {
                             if (store.Info.ModVersion != null && ModPage.DisplayLatestRelease.Version > store.Info.ModVersion)
@@ -139,7 +143,7 @@ namespace FactorioNexus.PresentationFramework.Controls
                             return;
                         }
 
-                        IDownloadingManager downloadingManager = App.Instance.ServiceProvider.GetRequiredService<IDownloadingManager>();
+                        IDownloadingManager downloadingManager = App.Services.GetRequiredService<IDownloadingManager>();
                         if (downloadingManager.TryFindEntry(ModPage.Id, out PackageDownloadEntry? entry))
                         {
                             DownloadEntry = entry;

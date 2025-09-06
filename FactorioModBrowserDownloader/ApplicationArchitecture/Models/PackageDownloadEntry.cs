@@ -44,11 +44,9 @@ namespace FactorioNexus.ApplicationArchitecture.Models
             Status = ModStoreStatus.ResolvingDependencies;
             foreach (DependencyVersionRange dependency in await _dependencyResolver.ResolveRequiredDependencies(_releaseInfo))
             {
-                //DependencyDownloadEntry dependencyDownload = new DependencyDownloadEntry(dependency);
-                dependenciesNames.Add(dependency.ModId);
-
                 Task<PackageDownloadEntry> dependencyDownloadTask = _downloadingManager.QueueDependencyDownloading(dependency, CancellationToken.None);
                 downloadingTasks.Add(dependencyDownloadTask);
+                dependenciesNames.Add(dependency.ModId);
             }
 
             Status = ModStoreStatus.Downloading;
@@ -57,8 +55,6 @@ namespace FactorioNexus.ApplicationArchitecture.Models
 
             Status = ModStoreStatus.AwaitingDependencies;
             await Task.WhenAll(downloadingTasks);
-            Debug.WriteLine("Downloading session for mod \"{0}\" ended successfully", [ModId]);
-
             return pckgStream;
         }
     }
@@ -117,9 +113,10 @@ namespace FactorioNexus.ApplicationArchitecture.Models
                 using Stream modArchiveStream = await DownloadPacakgeStream(client);
 
                 Status = ModStoreStatus.Extracting;
-                string modDir = ExtractMemoryArchive(modArchiveStream);
+                string modDir = await ExtractMemoryArchive(modArchiveStream);
 
                 Status = ModStoreStatus.Downloaded;
+                Debug.WriteLine("Downloading session for mod \"{0}\" ended successfully", [ModId]);
                 return new DirectoryInfo(modDir);
             }
             catch (OperationCanceledException)
@@ -164,20 +161,29 @@ namespace FactorioNexus.ApplicationArchitecture.Models
             return modArchiveStream;
         }
 
-        private string ExtractMemoryArchive(Stream modArchiveStream)
+        private async Task<string> ExtractMemoryArchive(Stream modArchiveStream)
         {
-            string extractTo = Path.Combine(App.Instance.Settings.GamedataDirectory, "Mods");
-
+            string extractTo = Path.Combine(App.Settings.GamedataDirectory, "Mods");
             using ZipArchive zipArchive = new ZipArchive(modArchiveStream);
+
             foreach (ZipArchiveEntry entry in zipArchive.Entries)
             {
-                string entryExtractTo = Path.Combine(extractTo, entry.FullName);
+                if (string.IsNullOrEmpty(entry.Name))
+                    continue;
+
+                string entryExtractTo = Path.Combine(extractTo, entry.FullName.Replace("/", "\\"));
                 _cancellCommand.Token.ThrowIfCancellationRequested();
 
-                using FileStream entryFile = File.Open(entryExtractTo, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-                using Stream entryStream = entry.Open();
+                string? dir = Path.GetDirectoryName(entryExtractTo);
+                if (string.IsNullOrEmpty(dir))
+                    throw new InvalidDataException();
 
-                entryStream.CopyToAsync(entryFile, _cancellCommand.Token);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
+                using FileStream entryFile = File.Open(entryExtractTo, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                using Stream entryStream = entry.Open();
+                await entryStream.CopyToAsync(entryFile, _cancellCommand.Token);
             }
 
             string firstEntry = zipArchive.Entries.ElementAt(0).FullName;

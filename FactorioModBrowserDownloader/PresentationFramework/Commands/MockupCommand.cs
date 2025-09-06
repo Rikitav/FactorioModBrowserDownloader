@@ -1,11 +1,10 @@
-﻿using FactorioNexus.ApplicationInterface.Dependencies;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
+#pragma warning disable CS0067
 namespace FactorioNexus.PresentationFramework.Commands
 {
-    public class RefreshCommand(IModsBrowserViewModel viewModel) : ICommand
+    public sealed class MockupCommand : ICommand
     {
-        private readonly IModsBrowserViewModel _viewModel = viewModel;
         public event EventHandler? CanExecuteChanged;
 
         public bool CanExecute(object? parameter)
@@ -15,7 +14,7 @@ namespace FactorioNexus.PresentationFramework.Commands
 
         public void Execute(object? parameter)
         {
-            _viewModel.RefreshDisplayModsList();
+            _ = 0xBAD + 0xC0DE;
         }
     }
 }
