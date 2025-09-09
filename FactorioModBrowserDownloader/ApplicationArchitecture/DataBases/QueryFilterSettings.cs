@@ -85,13 +85,9 @@ namespace FactorioNexus.ApplicationArchitecture.DataBases
 
             if (!string.IsNullOrEmpty(SearchText))
             {
-                Func<string, string, bool> SearchFunction = UseRegexSearch ? (input, pattern) => Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) : DefaultSearcher;
-                if (!SearchFunction(entity.Id, SearchText) && !SearchFunction(entity.Title, SearchText))
+                if (!MatchesName(entity.Id, SearchText) && !MatchesName(entity.Title, SearchText))
                 {
-                    if (string.IsNullOrEmpty(entity.OwnerName))
-                        return false;
-
-                    if (!SearchFunction(entity.OwnerName, SearchText))
+                    if (string.IsNullOrEmpty(entity.OwnerName) || !MatchesName(entity.OwnerName, SearchText))
                         return false;
                 }
             }
@@ -149,15 +145,34 @@ namespace FactorioNexus.ApplicationArchitecture.DataBases
                 _refreshCommand.Execute(null);
         }
 
-        private static bool DefaultSearcher(string input, string pattern)
+        private bool MatchesName(string input, string pattern)
         {
-            if (!input.Contains(pattern, StringComparison.InvariantCultureIgnoreCase))
+            if (UseRegexSearch)
+                return Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+            return RecursiveWildcardMatcher(input, 0, pattern, 0);
+        }
+        
+        private static bool RecursiveWildcardMatcher(string text, int textPos, string pattern, int patternPos)
+        {
+            if (patternPos == pattern.Length)
+                return textPos == text.Length;
+
+            if (pattern[patternPos] == '*')
+            {
+                for (int skip = 0; textPos + skip <= text.Length; skip++)
+                {
+                    if (RecursiveWildcardMatcher(text, textPos + skip, pattern, patternPos + 1))
+                        return true;
+                }
+
                 return false;
+            }
 
-            return true;
+            if (textPos < text.Length && (pattern[patternPos] == '?' || pattern[patternPos] == text[textPos]))
+                return RecursiveWildcardMatcher(text, textPos + 1, pattern, patternPos + 1);
 
-            //string specAsRegex = Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "$";
-            //return Regex.IsMatch(input, specAsRegex, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            return false;
         }
     }
 
