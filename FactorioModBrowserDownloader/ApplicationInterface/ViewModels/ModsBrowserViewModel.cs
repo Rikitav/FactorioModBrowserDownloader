@@ -150,7 +150,7 @@ namespace FactorioNexus.ApplicationInterface.ViewModels
                             continue;
 
                         Dispatcher.FromThread(dispatcherThread).Invoke(() => DisplayModsList.Add(fullMod));
-                        _logger.LogInformation("");
+                        _logger.LogTrace("Added '{id}' to display list", fullMod.Id);
                         count++;
                     }
                     catch (RequestException rexc) when (rexc.Aggreagate<TimeoutException>())
@@ -268,7 +268,7 @@ namespace FactorioNexus.ApplicationInterface.ViewModels
                         }
                         catch
                         {
-                            Debug.WriteLine("SOMEHOW, cannot resume a page extending.");
+                            _logger.LogError("Failed to resume a page extending.");
                         }
 
                         break;

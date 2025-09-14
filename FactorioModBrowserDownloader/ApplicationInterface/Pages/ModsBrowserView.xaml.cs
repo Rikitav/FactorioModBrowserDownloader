@@ -1,6 +1,8 @@
 ﻿using FactorioNexus.ApplicationInterface.Dependencies;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 
 namespace FactorioNexus.ApplicationInterface.Pages
 {
@@ -9,6 +11,7 @@ namespace FactorioNexus.ApplicationInterface.Pages
         public ModsBrowserView()
         {
             InitializeComponent();
+            //PreviewKeyDown += FocusChanger;
         }
 
         public void ScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -20,9 +23,15 @@ namespace FactorioNexus.ApplicationInterface.Pages
             model.RequireListExtending = delta < 3000;
         }
 
-        private void CopyErrorMessage_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void CopyErrorMessage_Click(object sender, RoutedEventArgs e)
         {
             Clipboard.SetText(errorTextBlock.Text);
+        }
+
+        protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
+        {
+            base.OnGotKeyboardFocus(e);
+            //Keyboard.Focus(searchBox);
         }
     }
 }

@@ -46,13 +46,14 @@
             <Grid>
 
                 <!-- Factorio logo, cuz cool -->
-                <Button Height="70" Margin="100,30,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Style="{x:Null}" Click="Button_Header_Click">
+                <!--Button Height="70" Margin="100,30,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Style="{x:Null}" Click="Button_Header_Click">
                     <Button.Template>
                         <ControlTemplate>
                             <Image Source="/ApplicationInterface/MainWindow/factorio.png"/>
                         </ControlTemplate>
                     </Button.Template>
-                </Button>
+                </Button-->
+                <Image x:Name="headerImage" Height="70" Margin="100,30,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Source="/ApplicationInterface/MainWindow/factorio.png"/>
 
                 <!-- A main functional body of window -->
                 <TabControl MaxWidth="1300" Margin="100,150,100,100" HorizontalAlignment="Stretch" Background="#313031" BorderThickness="0">

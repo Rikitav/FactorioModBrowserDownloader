@@ -11,7 +11,6 @@ namespace FactorioNexus.ApplicationArchitecture.Services
     public class DownloadingManager(ILogger<DownloadingManager> logger, IFactorioNexusClient client, IDependencyResolver dependencyResolver, IStoringManager storingManager) : DisposableBase<DownloadingManager>, IDownloadingManager
     {
         private const int MaxDownloading = 5;
-        //private static readonly string[] SkippingModsNames = ["base", "space-age", "quality"];
 
         private readonly ILogger<DownloadingManager> Logger = logger;
         private readonly IFactorioNexusClient Client = client;
@@ -36,7 +35,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to queue {0} mod download. {1}", [modEntry.Id, ex]);
+                Logger.LogError(ex, "Failed to queue '{id}' mod download.", modEntry.Id);
                 throw;
             }
         }
@@ -54,7 +53,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to queue {0} mod download. {1}", [dependency.ModId, ex]);
+                Logger.LogError(ex, "Failed to queue '{id}' mod download.", dependency.ModId);
                 throw;
             }
         }
@@ -69,37 +68,36 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             try
             {
                 DownloadingList.Add(entry);
-                Debug.WriteLine("Added {0} entry to downloading queue", [entry.ModId]);
+                Logger.LogTrace("Added '{id}' entry to downloading queue", entry.ModId);
 
                 await _downloadingSemaphore.WaitAsync(cancellationToken);
-                Debug.WriteLine("{0} downloading entry started", [entry.ModId]);
+                Logger.LogTrace("'{id}' downloading entry started", entry.ModId);
 
                 DirectoryInfo? modDir = await entry.StartDownload(Client);
                 if (modDir == null)
                 {
-                    Debug.WriteLine("Download entry \"{0}\" returned null directory. Considered failed to download", [entry.ModId]);
+                    Logger.LogWarning("Download entry '{id}' returned null directory. Considered failed to download", entry.ModId);
                     return;
                 }
 
                 StoringManager.TryAdd(modDir);
-                Debug.WriteLine("{0} entry successfully downloaded", [entry.ModId]);
+                Logger.LogInformation("'{id}' entry successfully downloaded", entry.ModId);
             }
             catch (OperationCanceledException)
             {
-                Debug.WriteLine("Cancelled {0} downloading entry", [entry.ModId]);
+                Logger.LogTrace("Cancelled '{id}' downloading entry", entry.ModId);
                 return;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to download {0} entry. {1}", [entry.ModId, ex]);
-                //throw;
+                Logger.LogError(ex, "Failed to download '{id}' entry.", entry.ModId);
                 return;
             }
             finally
             {
                 _downloadingSemaphore.Release();
                 DownloadingList.Remove(entry);
-                Debug.WriteLine("Removed {0} entry from downloading queue", [entry.ModId]);
+                Logger.LogTrace("Removed '{id}' entry from downloading queue", entry.ModId);
             }
         }
 

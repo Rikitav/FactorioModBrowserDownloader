@@ -1,8 +1,11 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,6 +18,7 @@ namespace FactorioNexus.PresentationFramework.Controls
     {
         private readonly IDownloadingManager? _downloadingManager;
         private readonly IFactorioNexusClient? _nexusClient;
+        private readonly ILogger<CurrentDownloadPresenter> _logger;
 
         public bool IsDownloading
         {
@@ -42,8 +46,13 @@ namespace FactorioNexus.PresentationFramework.Controls
             {
                 _downloadingManager = App.Services.GetRequiredService<IDownloadingManager>();
                 _nexusClient = App.Services.GetRequiredService<IFactorioNexusClient>();
+                _logger = App.Services.GetRequiredService<ILogger<CurrentDownloadPresenter>>();
             }
-            
+            else
+            {
+                _logger = new NullLogger<CurrentDownloadPresenter>();
+            }
+
             if (_downloadingManager != null)
             {
                 _downloadingManager.DownloadingList.CollectionChanged += CollectionChanged;
@@ -73,7 +82,7 @@ namespace FactorioNexus.PresentationFramework.Controls
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to resolve downloading entry. {0}", [ex]);
+                _logger.LogError(ex, "Failed to resolve downloading entry. CurrentDownloading: '{id}'", CurrentDownloadingEntry?.Id ?? "NULL");
             }
         }
 

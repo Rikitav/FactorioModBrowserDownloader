@@ -118,7 +118,6 @@ namespace FactorioNexus.PresentationFramework.Controls
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to download mod {0}. {1}", [ModPage.Id, ex]);
                 MessageBox.Show(string.Format("Failed to download mod {0}. {1}", [ModPage.Id, ex]));
             }
         }

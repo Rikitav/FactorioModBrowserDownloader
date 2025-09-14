@@ -1,11 +1,12 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Models;
 using FactorioNexus.ApplicationArchitecture.Requests;
-using System.Diagnostics;
+using FactorioNexus.ApplicationArchitecture.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using System.Windows.Media.Imaging;
 
 namespace FactorioNexus
 {
@@ -13,42 +14,19 @@ namespace FactorioNexus
     {
         private static readonly Dictionary<string, ModEntryFull> _cachedFullMods = [];
 
-        public static async Task<BitmapSource> DownloadThumbnail(this IFactorioNexusClient client, ModEntryShort modPage, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrEmpty(modPage.Thumbnail))
-                throw new ArgumentException("Cannot download thumbnail for mod page without thumbnail", nameof(modPage));
-
-            try
-            {
-                string thumbnailUrl = Constants.AssetsFactorioUrl + modPage.Thumbnail;
-                Debug.WriteLine("🖼️ Requesting thumbnail : {0}", [thumbnailUrl]);
-
-                using (Stream contentStream = await client.SendDataRequest(thumbnailUrl, cancellationToken))
-                {
-                    BitmapImage bitmapImage = new BitmapImage();
-
-                    bitmapImage.BeginInit();
-                    bitmapImage.StreamSource = new MemoryStream();
-                    contentStream.CopyTo(bitmapImage.StreamSource);
-                    bitmapImage.EndInit();
-
-                    return bitmapImage;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Failed to download the thumbnail for \"{0}\" mod. {1}", [modPage.Id, ex]);
-                throw;
-            }
-        }
-
         public static async Task<Stream> DownloadPackage(this IFactorioNexusClient client, ModEntryInfo modPage, ReleaseInfo releaseInfo, CancellationToken cancellationToken = default)
             => await client.DownloadPackage(modPage.Id, releaseInfo.Version, cancellationToken);
 
         public static async Task<Stream> DownloadPackage(this IFactorioNexusClient client, DependencyVersionRange dependency, CancellationToken cancellationToken = default)
         {
+            ILogger<IFactorioNexusClient> logger = client is FactorioNexusClient fnxc
+                ? fnxc.Logger : NullLogger<IFactorioNexusClient>.Instance;
+
             if (dependency.LatestMatchingRelease == null)
+            {
+                logger.LogError("Latest matching release for '{id}' wasn't found for this dependency", dependency.ModId);
                 throw new ArgumentNullException(nameof(dependency), "Latest matching release wasn't found for this dependency");
+            }
 
             Version version = dependency.LatestMatchingRelease.Version;
             return await client.DownloadPackage(dependency.ModId, version, cancellationToken);
@@ -56,39 +34,45 @@ namespace FactorioNexus
 
         public static async Task<Stream> DownloadPackage(this IFactorioNexusClient client, string modId, Version version, CancellationToken cancellationToken = default)
         {
+            ILogger<IFactorioNexusClient> logger = client is FactorioNexusClient fnxc
+                ? fnxc.Logger : NullLogger<IFactorioNexusClient>.Instance;
+
             try
             {
                 string packageUri = Constants.PackagesFactorioUrl + string.Format("/{0}/{1}.zip", modId, version);
-                Debug.WriteLine("📦 Requesting package : {0}", [packageUri]);
-                return await client.SendDataRequest(packageUri, cancellationToken);
+                using (HttpResponseMessage responce = await client.Request(packageUri, cancellationToken))
+                    return await responce.Content.ReadAsStreamAsync(cancellationToken);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to download release package \"{0}\" for \"{1}\" mod. {2}", [version, modId, ex]);
+                logger.LogError(ex, "Failed to download release package '{ver}' for '{id}' mod.", version, modId);
                 throw;
             }
         }
 
         public static async Task<ModEntryFull> FetchFullModInfo(this IFactorioNexusClient client, string modId, CancellationToken cancellationToken = default)
         {
+            ILogger<IFactorioNexusClient> logger = client is FactorioNexusClient fnxc
+                ? fnxc.Logger : NullLogger<IFactorioNexusClient>.Instance;
+
             if (_cachedFullMods.TryGetValue(modId, out ModEntryFull? fullMod))
             {
-                Debug.WriteLine("ModPageFullInfo {0} was restored from cached mods", [modId]);
+                logger.LogTrace("ModPageFullInfo '{id}' was restored from cached mods", modId);
                 return fullMod;
             }
 
             try
             {
-                Debug.WriteLine("Requesting \"{0}\"'s full mod page", [modId]);
-                fullMod = await client.SendManagedRequest(new GetFullModInfoRequest(modId), cancellationToken);
+                logger.LogTrace("Requesting '{id}'s full mod page", modId);
+                fullMod = await client.RequestManaged(new GetFullModInfoRequest(modId), cancellationToken);
 
-                Debug.WriteLine("Id {0} cached", [modId]);
                 _cachedFullMods.TryAdd(modId, fullMod);
+                logger.LogTrace("Id '{id}' cached", modId);
                 return fullMod;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("failed to cache {0}. {1}", [modId, ex]);
+                logger.LogError(ex, "failed to cache {id}.", modId);
                 throw;
             }
         }
@@ -101,7 +85,7 @@ namespace FactorioNexus
 
         public static async Task<JsonDocument> GetModsDatabase(this IFactorioNexusClient client, CancellationToken cancellationToken = default(CancellationToken))
         {
-            HttpResponseMessage responce = await client.SendMessageRequest(new GetPortalModsListRequest(), cancellationToken);
+            HttpResponseMessage responce = await client.Request(new GetPortalModsListRequest(), cancellationToken);
             return JsonDocument.Parse(await responce.Content.ReadAsStreamAsync(cancellationToken));
         }
     }

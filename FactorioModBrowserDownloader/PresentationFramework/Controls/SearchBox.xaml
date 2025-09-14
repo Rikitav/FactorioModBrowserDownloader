@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:FactorioNexus.PresentationFramework.Controls"
              xmlns:converter="clr-namespace:FactorioNexus.PresentationFramework.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" x:Name="this">
+             d:DesignHeight="450" d:DesignWidth="800" x:Name="this" Focusable="True">
     <Grid>
         <Label
             Visibility="{Binding IsTextEmpty, ElementName=this, Converter={converter:BooleanToVisibilityConverter}}"
@@ -17,7 +17,7 @@
             HorizontalAlignment="Left" VerticalAlignment="Center"
             IsHitTestVisible="False" Panel.ZIndex="1"/>
         
-        <TextBox
+        <TextBox x:Name="textBox"
             BorderThickness="0"
             Text="{Binding Text, ElementName=this}"
             Foreground="{Binding Foreground, ElementName=this}"

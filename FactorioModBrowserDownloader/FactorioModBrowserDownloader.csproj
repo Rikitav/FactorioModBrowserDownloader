@@ -18,11 +18,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="ApplicationInterface\MainWindow\cracktorio.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Content Include="factorio.ico" />
 	</ItemGroup>
 
   <ItemGroup>
 	  <Resource Include="ApplicationInterface\MainWindow\background.jpg" />
+	  <Resource Include="ApplicationInterface\MainWindow\cracktorio.png" />
 	  <Resource Include="ApplicationInterface\MainWindow\factorio.png" />
 	  <Resource Include="ApplicationInterface\Fonts\TitilliumWeb-Bold.ttf" />
 	  <Resource Include="ApplicationInterface\Fonts\TitilliumWeb-Regular.ttf" />

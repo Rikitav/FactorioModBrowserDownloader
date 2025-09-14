@@ -78,9 +78,13 @@ namespace FactorioNexus.PresentationFramework.Controls
             textChangeTimer.Tick += TextChange_Tick;
         }
 
+        public void FocusInput()
+        {
+            Keyboard.Focus(textBox);
+        }
+
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            TextBox textBox = (TextBox)sender;
             Text = textBox.Text;
         }
 

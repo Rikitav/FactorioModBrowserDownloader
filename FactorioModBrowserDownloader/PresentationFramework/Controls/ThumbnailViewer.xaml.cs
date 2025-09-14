@@ -2,7 +2,6 @@
 using FactorioNexus.ApplicationArchitecture.Models;
 using FactorioNexus.ApplicationArchitecture.Services;
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -11,7 +10,7 @@ namespace FactorioNexus.PresentationFramework.Controls
 {
     public partial class ThumbnailViewer : UserControl
     {
-        private readonly IThumbnailsResolver thumbnailsResolver;
+        private static IThumbnailsResolver? thumbnailsResolver = null;
 
         public bool IsDownloading
         {
@@ -39,8 +38,12 @@ namespace FactorioNexus.PresentationFramework.Controls
 
         public ThumbnailViewer()
         {
+            if (App.Services != null)
+            {
+                thumbnailsResolver ??= App.Services.GetRequiredService<IThumbnailsResolver>();
+            }
+
             InitializeComponent();
-            thumbnailsResolver = App.Services.GetRequiredService<IThumbnailsResolver>();
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -65,20 +68,15 @@ namespace FactorioNexus.PresentationFramework.Controls
             try
             {
                 IsDownloading = true;
-                DisplayThumbnail = await thumbnailsResolver.ResolveThumbnail(modPage);
+                DisplayThumbnail = await thumbnailsResolver!.ResolveThumbnail(modPage);
             }
             catch (MissingThumbnailException)
             {
                 IsThumbnailMissing = true;
             }
-            catch (FailedThumbnailException)
+            catch (Exception)
             {
                 IsDownloadFaulted = true;
-            }
-            catch (Exception ex)
-            {
-                IsDownloadFaulted = true;
-                Debug.WriteLine(ex);
             }
             finally
             {

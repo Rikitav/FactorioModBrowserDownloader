@@ -1,11 +1,10 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Extensions;
 using FactorioNexus.ApplicationArchitecture.Requests;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -13,39 +12,44 @@ namespace FactorioNexus.ApplicationArchitecture.Services
 {
     public class FactorioNexusClient : DisposableBase<FactorioNexusClient>, IFactorioNexusClient
     {
+        private const int RetryCount = 3;
+
         public static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
-        //private const int RetryThreshold = 60;
-        private const int RetryCount = 3;
+        private readonly ILogger<FactorioNexusClient> _logger;
 
         private HttpClient httpClient;
+
+        public ILogger<FactorioNexusClient> Logger => _logger;
 
         public event AsyncEventHandler<ApiRequestEventArgs>? OnMakingApiRequest;
         public event AsyncEventHandler<ApiResponseEventArgs>? OnApiResponseReceived;
 
-        public FactorioNexusClient()
+        public FactorioNexusClient(ILogger<FactorioNexusClient> logger)
         {
+            _logger = logger;
+
             httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromMinutes(1)
             };
         }
 
-        public virtual async Task<TResponse> SendManagedRequest<TResponse>(ApiRequestBase<TResponse> request, CancellationToken cancellationToken = default(CancellationToken)) where TResponse : class
+        public virtual async Task<TResponse> RequestManaged<TResponse>(ApiRequestBase<TResponse> request, CancellationToken cancellationToken = default(CancellationToken)) where TResponse : class
         {
-            using HttpResponseMessage httpResponse = await SendMessageRequest(request, cancellationToken).ConfigureAwait(false);
+            using HttpResponseMessage httpResponse = await Request(request, cancellationToken).ConfigureAwait(false);
             TResponse? response = await DeserializeContent<TResponse>(httpResponse, cancellationToken).ConfigureAwait(false);
             return response ?? throw new RequestException("Response is null", httpResponse.StatusCode);
         }
 
-        public virtual async Task<HttpResponseMessage> SendMessageRequest<TResponse>(ApiRequestBase<TResponse> request, CancellationToken cancellationToken = default(CancellationToken)) where TResponse : class
+        public virtual async Task<HttpResponseMessage> Request<TResponse>(ApiRequestBase<TResponse> request, CancellationToken cancellationToken = default(CancellationToken)) where TResponse : class
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
             using HttpRequestMessage httpRequest = request.ToRequestMessage();
-            Debug.WriteLine("📤 Sending request on URI \"{0}\"", [httpRequest.RequestUri]);
+            Logger.LogTrace("Sending request on URI \"{url}\"", httpRequest.RequestUri);
 
             for (int attempt = 1; attempt <= RetryCount; attempt++)
             {
@@ -68,20 +72,25 @@ namespace FactorioNexus.ApplicationArchitecture.Services
                     }
 
                     if (httpResponse.StatusCode != HttpStatusCode.OK)
+                    {
+                        //Logger.LogError("Request on URI \"{uri}\" return negative status code ({code})", httpRequest.RequestUri, httpResponse.StatusCode);
                         throw new RequestException("Returned response has negative status", httpResponse.StatusCode);
+                    }
 
                     return httpResponse;
                 }
                 catch (TimeoutException)
                 {
+                    Logger.LogWarning("Request on URI \"{uri}\" timed out (Attempt : {attempt})", httpRequest.RequestUri, attempt);
                     continue;
                 }
             }
 
+            Logger.LogError("Request on URI \"{uri}\" ran out of request attempts", httpRequest.RequestUri);
             throw new Exception("Out of request attempts");
         }
 
-        public async Task<Stream> SendDataRequest(string requestUri, CancellationToken cancellationToken = default)
+        public async Task<HttpResponseMessage> Request(string requestUri, CancellationToken cancellationToken = default)
         {
             HttpRequestMessage requestMessage = new HttpRequestMessage()
             {
@@ -91,14 +100,13 @@ namespace FactorioNexus.ApplicationArchitecture.Services
 
             HttpResponseMessage responseMessage = await SendRequestMessage(requestMessage, cancellationToken);
             responseMessage.EnsureSuccessStatusCode();
-            return await responseMessage.Content.ReadAsStreamAsync(cancellationToken);
+            return responseMessage;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static async Task<T?> DeserializeContent<T>(HttpResponseMessage httpResponse, CancellationToken cancellationToken = default(CancellationToken)) where T : class
+        private async Task<T?> DeserializeContent<T>(HttpResponseMessage httpResponse, CancellationToken cancellationToken = default(CancellationToken)) where T : class
         {
             if (httpResponse.Content == null)
-                throw new RequestException("Response doesn't contain any content", httpResponse.StatusCode);
+                throw new RequestException("Response without content", httpResponse.StatusCode);
 
             try
             {
@@ -107,6 +115,7 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             }
             catch (Exception innerException)
             {
+                Logger.LogError(innerException, "Failed to deserialize content of responce");
                 throw new RequestException("There was an exception during deserialization of the response", httpResponse.StatusCode, innerException);
             }
         }
@@ -115,18 +124,12 @@ namespace FactorioNexus.ApplicationArchitecture.Services
         {
             try
             {
-                return await httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                return await httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             }
-            catch (TaskCanceledException innerException)
+            catch (Exception innerException)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    throw;
-
-                throw new RequestException("Request timed out", innerException);
-            }
-            catch (Exception innerException2)
-            {
-                throw new RequestException("Exception during making request", innerException2);
+                Logger.LogError(innerException, "Failed to send request on URI \"{uri}\"", httpRequest.RequestUri);
+                throw new RequestException("Exception during making request", innerException);
             }
         }
 

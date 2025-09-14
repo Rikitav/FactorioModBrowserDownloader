@@ -69,7 +69,7 @@ namespace FactorioNexus
             try
             {
                 using FileStream configStream = File.OpenRead(configFilePath);
-                container = JsonSerializer.Deserialize<SettingsContainer>(configStream);
+                container = JsonSerializer.Deserialize<SettingsContainer>(configStream, serializerOptions);
 
                 if (container == null)
                 {
@@ -89,7 +89,7 @@ namespace FactorioNexus
         private static SettingsContainer RecreteSettingsFile(string cfg)
         {
             SettingsContainer container = new SettingsContainer();
-            string content = JsonSerializer.Serialize(container, FactorioNexusClient.JsonOptions);
+            string content = JsonSerializer.Serialize(container, serializerOptions);
 
             File.Delete(cfg);
             File.WriteAllText(cfg, content);

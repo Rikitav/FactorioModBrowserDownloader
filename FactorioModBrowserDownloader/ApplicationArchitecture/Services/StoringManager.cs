@@ -1,28 +1,35 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Models;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Numerics;
 
 namespace FactorioNexus.ApplicationArchitecture.Services
 {
     public class StoringManager : DisposableBase<StoringManager>, IStoringManager
     {
         private readonly object StoreReadLook = new object();
+        private readonly ILogger<StoringManager> _logger;
 
         private ObservableCollection<ModStoreEntry> _storedMods = [];
 
         public ObservableCollection<ModStoreEntry> StoredMods => _storedMods;
+        public ILogger<StoringManager> Logger => _logger;
 
-        public StoringManager()
+        public StoringManager(ILogger<StoringManager> logger)
         {
+            _logger = logger;
             ScanCurrentStorage();
         }
 
         public async void ScanCurrentStorage(CancellationToken cancellationToken = default(CancellationToken))
         {
             await Task.Yield();
+            Logger.LogTrace("Scanning mods storage");
+            
             lock (StoreReadLook)
             {
                 StoredMods.Clear();
@@ -50,11 +57,13 @@ namespace FactorioNexus.ApplicationArchitecture.Services
                 {
                     ModStoreEntry modStore = new ModStoreEntry(directory);
                     StoredMods.Add(modStore);
+
+                    Logger.LogTrace("Added mod '{id}'", modStore.Info.Name);
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Failed to add mod store {0}. {1}", [directory.Name, ex]);
+                    Logger.LogError(ex, "Failed to add mod store '{id}'.", directory.Name);
                     return false;
                 }
             }

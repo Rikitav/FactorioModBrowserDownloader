@@ -1,7 +1,9 @@
 ﻿using FactorioNexus.ApplicationArchitecture.Dependencies;
 using FactorioNexus.ApplicationArchitecture.Models;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Windows.Media.Imaging;
 
 namespace FactorioNexus.ApplicationArchitecture.Services
@@ -13,14 +15,16 @@ namespace FactorioNexus.ApplicationArchitecture.Services
 
         private readonly object SyncObj = new object();
         private readonly IFactorioNexusClient Client;
+        private readonly ILogger<ThumbnailsResolver> Logger;
 
         private Dictionary<string, BitmapSource> MemoryCachedThumbnails = [];
         private SemaphoreSlim DownloadingSemaphore = new SemaphoreSlim(MaxDownloading);
 
-        public ThumbnailsResolver(IFactorioNexusClient client)
+        public ThumbnailsResolver(ILogger<ThumbnailsResolver> logger, IFactorioNexusClient client)
         {
             Directory.CreateDirectory(Path.Combine(Constants.PrivateAppDataDirectory, "assets"));
             Client = client;
+            Logger = logger;
         }
 
         public async Task<BitmapSource> ResolveThumbnail(ModEntryShort modPage, CancellationToken cancellationToken = default)
@@ -51,12 +55,12 @@ namespace FactorioNexus.ApplicationArchitecture.Services
                 resolvedThumbnail ??= await TryDownloadThumbnail(modPage, cancellationToken);
 
                 // Returning resolved thumbnail
-                return resolvedThumbnail ?? throw new FailedThumbnailException();
+                return resolvedThumbnail ?? throw new ThumbnailFailedException();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to get thumbnail image for {0}. {1}", [modPage.Id, ex]);
-                throw new FailedThumbnailException();
+                Logger.LogError(ex, "Failed to get thumbnail image for '{id}'.", modPage.Id);
+                throw new ThumbnailFailedException();
             }
             finally
             {
@@ -81,14 +85,14 @@ namespace FactorioNexus.ApplicationArchitecture.Services
                     BitmapSource bitmap = cachedFile.LoadThumbnailFile();
 
                     // Debug message
-                    Debug.WriteLine("Thumbnail for {0} was restored from cached thumbnails", [modPage.Id]);
+                    Logger.LogTrace("Thumbnail for '{id}' was restored from cached thumbnails.", modPage.Id);
                     return bitmap;
                 }
             }
             catch (Exception ex)
             {
                 // Something went wrong during thumbnail loading
-                Debug.WriteLine("Failed to cache thumbnail image to file for {0}. {1}", [modPage.Id, ex]);
+                Logger.LogError(ex, "Failed to cache thumbnail image to file for '{id}'.", modPage.Id);
                 return null;
             }
         }
@@ -99,16 +103,16 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             {
                 // Downloading thumbnail from Factorio assets server
                 await DownloadingSemaphore.WaitAsync(cancellationToken);
-                BitmapSource bitmap = await Client.DownloadThumbnail(modPage, cancellationToken);
+                BitmapSource bitmap = await DownloadThumbnail(modPage, cancellationToken);
 
                 // Debug message
-                Debug.WriteLine("Thumbnail for {0} was downloaded from assets server", [modPage.Id]);
+                Logger.LogTrace("Thumbnail for '{id}' was downloaded from assets server.", modPage.Id);
                 return bitmap;
             }
             catch (Exception ex)
             {
                 // Something went wrong during thumbnail loading
-                Debug.WriteLine("Failed to download thumbnail image for {0}. {1}", [modPage.Id, ex]);
+                Logger.LogError(ex, "Failed to download thumbnail image for '{id}'.", modPage.Id);
                 return null;
             }
             finally
@@ -132,11 +136,11 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to cache thumbnail image to memory for {0}. {1}", [modPage.Id, ex]);
+                Logger.LogError(ex, "Failed to cache thumbnail image to memory for '{id}'.", modPage.Id);
             }
         }
 
-        private static void SaveThumbnailCache(ModEntryShort modPage, FileInfo cachedFile, BitmapSource bitmap)
+        private void SaveThumbnailCache(ModEntryShort modPage, FileInfo cachedFile, BitmapSource bitmap)
         {
             try
             {
@@ -153,14 +157,48 @@ namespace FactorioNexus.ApplicationArchitecture.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failed to cache thumbnail image to file for {0}. {1}", [modPage.Id, ex]);
+                Logger.LogError(ex, "Failed to cache thumbnail image to file for '{id}'.", modPage.Id);
+            }
+        }
+
+        public async Task<BitmapSource> DownloadThumbnail(ModEntryShort modPage, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(modPage.Thumbnail))
+                throw new ArgumentException("Cannot download thumbnail for mod page without thumbnail", nameof(modPage));
+
+            try
+            {
+                string thumbnailUrl = Constants.AssetsFactorioUrl + modPage.Thumbnail;
+                Logger.LogTrace("Requesting thumbnail for mod '{id}'.", thumbnailUrl);
+
+                using (HttpResponseMessage responce = await Client.Request(thumbnailUrl, cancellationToken))
+                {
+                    using (Stream contentStream = await responce.Content.ReadAsStreamAsync(cancellationToken))
+                    {
+                        BitmapImage bitmapImage = new BitmapImage();
+                        bitmapImage.BeginInit();
+
+                        bitmapImage.StreamSource = new MemoryStream();
+                        contentStream.CopyTo(bitmapImage.StreamSource);
+
+                        bitmapImage.EndInit();
+                        bitmapImage.Freeze();
+
+                        return bitmapImage;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to download the thumbnail for '{id}'.", modPage.Id);
+                throw;
             }
         }
 
         private static FileInfo GetCachedThumbnailFile(ModEntryShort modPage)
         {
             if (string.IsNullOrEmpty(modPage.Thumbnail))
-                throw new NullReferenceException("Thumbnail is null!");
+                throw new NullReferenceException("Thumbnail path is null");
 
             return new FileInfo(NexusAppdataDirectory + modPage.Thumbnail.Replace('/', '\\'));
         }
@@ -184,11 +222,6 @@ namespace FactorioNexus.ApplicationArchitecture.Services
         }
     }
 
-    public class MissingThumbnailException()
-        : Exception()
-    { }
-
-    public class FailedThumbnailException()
-        : Exception()
-    { }
+    public class MissingThumbnailException() : Exception();
+    public class ThumbnailFailedException() : Exception();
 }
