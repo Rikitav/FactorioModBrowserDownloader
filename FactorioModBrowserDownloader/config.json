@@ -8,7 +8,7 @@
   "Logging": {
     "LogLevel": "Trace",
     "File": {
-      "Path": "log.txt",
+      "Path": "%AppData%\\factorio-nexus\\logs\\log.txt",
       "MinLevel": "Debug"
     }
   }

@@ -14,6 +14,7 @@ using NReco.Logging.File;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 
 namespace FactorioNexus
@@ -48,6 +49,9 @@ namespace FactorioNexus
                 return;
             }
 
+            if (!File.Exists("config.json") && !File.Exists(ApplicationSetings.AppDataLocation))
+                ApplicationSetings.RecreteSettingsFile();
+
             // Creating and configuring app infrastructure
             IServiceCollection servicesCollection = new ServiceCollection();
             IConfigurationManager configurationManager = new ConfigurationManager();
@@ -69,7 +73,7 @@ namespace FactorioNexus
         {
             // Adding configuration files
             configuration
-                .AddJsonFile(Path.Combine(Constants.PrivateAppDataDirectory, "config.json"))
+                .AddJsonFile(ApplicationSetings.AppDataLocation, true)
                 .AddJsonFile("config.json", true);
 
             // Configuring options

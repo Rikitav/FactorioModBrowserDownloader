@@ -1,13 +1,23 @@
 ﻿using System.IO;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FactorioNexus.Infrastructure.Models.Config
 {
     public sealed partial class ApplicationSetings
     {
-        private string _normalizedGamedataDirectory = string.Empty;
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
+        {
+            WriteIndented = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
+
+        public static readonly string AppDataLocation = Path.Combine(Constants.PrivateAppDataDirectory, "config.json");
+
+        private string _normalizedGamedataDirectory = Environment.ExpandEnvironmentVariables("%AppData%\\Factorio");
         private string _gamedataDirectory = "%AppData%\\Factorio";
         private int? _downloadOptionalDependencies = null;
-        //private bool _dontFetchFullModsList = false;
         private TimeSpan _databaseIrrelevantAfter = TimeSpan.FromDays(1);
 
         public string GamedataDirectory
@@ -31,62 +41,11 @@ namespace FactorioNexus.Infrastructure.Models.Config
             set => _downloadOptionalDependencies = value;
         }
 
-        /*
-        public bool DontFetchFullModsList
-        {
-            get => _dontFetchFullModsList;
-            set => _dontFetchFullModsList = value;
-        }
-        */
-
         public TimeSpan DatabaseIrrelevantAfter
         {
             get => _databaseIrrelevantAfter;
             set => _databaseIrrelevantAfter = value;
         }
-
-        /*
-        public static SettingsContainer LoadFromConfigFile()
-        {
-            SettingsContainer? container = null;
-            string configFilePath = Path.Combine(Environment.CurrentDirectory, "config.json");
-
-            if (!File.Exists(configFilePath))
-                configFilePath = Path.Combine(Constants.PrivateAppDataDirectory, "config.json");
-
-            if (!File.Exists(configFilePath))
-                return RecreteSettingsFile(configFilePath);
-
-            try
-            {
-                using FileStream configStream = File.OpenRead(configFilePath);
-                container = JsonSerializer.Deserialize<SettingsContainer>(configStream, serializerOptions);
-
-                if (container == null)
-                {
-                    container = new SettingsContainer();
-                    Debug.WriteLine("Settings container deserialization returned NULL instance! Default values assigned");
-                }
-            }
-            catch
-            {
-                return RecreteSettingsFile(configFilePath);
-            }
-
-            ValidateSettingsContainer(container);
-            return container;
-        }
-
-        private static SettingsContainer RecreteSettingsFile(string cfg)
-        {
-            SettingsContainer container = new SettingsContainer();
-            string content = JsonSerializer.Serialize(container, serializerOptions);
-
-            File.Delete(cfg);
-            File.WriteAllText(cfg, content);
-            return container;
-        }
-        */
 
         public void ValidateSettingsContainer()
         {
@@ -95,6 +54,14 @@ namespace FactorioNexus.Infrastructure.Models.Config
 
             if (!Directory.Exists(NormalizedGamedataDirectory))
                 throw new ApplicationException("\'GamedataDirectory\' contains invalid directory path (" + NormalizedGamedataDirectory + ")");
+        }
+
+        public static void RecreteSettingsFile()
+        {
+            File.Delete(AppDataLocation);
+            using Stream defaultCfgStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("FactorioNexus.config.json")!;
+            using FileStream cfgFileStream = File.OpenWrite(AppDataLocation);
+            defaultCfgStream.CopyTo(cfgFileStream);
         }
     }
 }
