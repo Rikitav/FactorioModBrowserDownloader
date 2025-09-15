@@ -6,12 +6,12 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageCheckBoxStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageDownloadButtonStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageSearchBoxStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageTabItemStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageComboBoxStyle.xaml"/>
-                <ResourceDictionary Source="/ApplicationInterface/Styles/VintageButtonStyle.xaml"/>
+                <ResourceDictionary Source="/UserInterface/Assets/Styles/VintageCheckBoxStyle.xaml"/>
+                <ResourceDictionary Source="/UserInterface/Assets/Styles/VintageDownloadButtonStyle.xaml"/>
+                <ResourceDictionary Source="/UserInterface/Assets/Styles/VintageSearchBoxStyle.xaml"/>
+                <ResourceDictionary Source="/UserInterface/Assets/Styles/VintageTabItemStyle.xaml"/>
+                <ResourceDictionary Source="/UserInterface/Assets/Styles/VintageComboBoxStyle.xaml"/>
+                <ResourceDictionary Source="/UserInterface/Assets/Styles/VintageButtonStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

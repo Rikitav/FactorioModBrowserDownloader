@@ -1,0 +1,15 @@
+{
+  "Application": {
+    "DownloadOptionalDependencies": 1,
+    "GamedataDirectory": "%AppData%\\Factorio",
+    "DatabaseIrrelevantAfter": "1.00:00:00"
+  },
+
+  "Logging": {
+    "LogLevel": "Trace",
+    "File": {
+      "Path": "log.txt",
+      "MinLevel": "Debug"
+    }
+  }
+}

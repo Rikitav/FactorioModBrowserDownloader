@@ -10,3 +10,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Maintainability", "CA1510")]
 [assembly: SuppressMessage("Usage", "CA2208")]
 [assembly: SuppressMessage("Style", "IDE0290")]
+[assembly: SuppressMessage("Performance", "CA1859")]

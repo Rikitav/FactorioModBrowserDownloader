@@ -1,0 +1,109 @@
+﻿using FactorioNexus.ApplicationArchitecture.Models;
+using FactorioNexus.Infrastructure.Extensions;
+using FactorioNexus.Infrastructure.Models;
+using FactorioNexus.Infrastructure.Services.Abstractions;
+using FactorioNexus.Utilities;
+using Microsoft.Extensions.Logging;
+
+namespace FactorioNexus.Infrastructure.Services
+{
+    public class DependencyResolver(ILogger<DependencyResolver> logger, IFactorioNexusClient client, IStoringManager storing) : DisposableBase<DependencyResolver>, IDependencyResolver
+    {
+        private static readonly string[] SkippingModsNames = ["base", "space-age", "quality"];
+        private readonly ILogger<DependencyResolver> Logger = logger;
+        private readonly IFactorioNexusClient Client = client;
+        private readonly IStoringManager Storing = storing;
+
+        public async Task<IEnumerable<DependencyVersionRange>> ResolveRequiredDependencies(ReleaseInfo release)
+        {
+            if (release.ModInfo.Dependencies == null || release.ModInfo.Dependencies.Length == 0)
+                return Enumerable.Empty<DependencyVersionRange>();
+
+            Dictionary<string, DependencyVersionRange> dependencyInlineTree = [];
+            await BuildInlineDependencyTree(release, dependencyInlineTree, App.Settings.DownloadOptionalDependencies ?? 0);
+            Logger.LogInformation("Inline dependency tree for mod '{fileName}' : [{values}]", release.FileName, string.Join(", ", dependencyInlineTree.Values));
+
+            List<DependencyVersionRange> matchedDependencies = [];
+            foreach (DependencyVersionRange dependency in dependencyInlineTree.Values)
+            {
+                if (!await dependency.TryFindLatestMatchingRelease())
+                {
+                    Logger.LogError("Failed to find dependency {dependency}", dependency.ToString());
+                    continue;
+                }
+
+                if (Storing.TryFind(dependency.ModId, out ModStoreEntry? _))
+                    continue;
+
+                matchedDependencies.Add(dependency);
+            }
+
+            return matchedDependencies;
+        }
+
+        private async Task BuildInlineDependencyTree(ReleaseInfo release, Dictionary<string, DependencyVersionRange> inlineTree, int optionalDependencyResolveLevel)
+        {
+            if (release.ModInfo.Dependencies == null || release.ModInfo.Dependencies.Length == 0)
+                return;
+
+            int myResolveLevel = optionalDependencyResolveLevel;
+            foreach (DependencyInfo dependency in release.ModInfo.Dependencies)
+            {
+                if (SkippingModsNames.Contains(dependency.ModId))
+                    continue;
+
+                if (!IsDependencyRequired(dependency, myResolveLevel))
+                    continue;
+
+                if (!inlineTree.TryGetValue(dependency.ModId, out DependencyVersionRange? range))
+                {
+                    range = new DependencyVersionRange(dependency);
+                    inlineTree.Add(dependency.ModId, range);
+                }
+                else
+                {
+                    if (range.TweakHistory.Count(dep => dep.ModId == dependency.ModId) > 5)
+                        continue; // Recursion danger !
+
+                    range.Tweak(dependency);
+                }
+
+                try
+                {
+                    ModEntryFull dependencyModPage = await Client.FetchFullModInfo(dependency);
+                    if (!dependencyModPage.TryFindRelease(range, out ReleaseInfo? dependencyRelease))
+                        continue; //dependencyRelease = dependencyModPage.DisplayLatestRelease;
+
+                    await BuildInlineDependencyTree(dependencyRelease, inlineTree, optionalDependencyResolveLevel - 1);
+                }
+                catch (RequestException rex)
+                {
+                    Logger.LogError(rex, "Failed to fetch mod '{id}' during dependencies resolutions.", dependency.ToString());
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to resolve mod '{id}'.", dependency.ToString());
+                    continue;
+                }
+            }
+        }
+
+        private static bool IsDependencyRequired(DependencyInfo dependency, int optionalDependencyResolveLevel)
+        {
+            if (dependency.Modifier.IsRequired)
+                return true;
+
+            if (App.Settings.DownloadOptionalDependencies != null && dependency.Modifier.IsOptional)
+                return optionalDependencyResolveLevel > 0;
+
+            return false;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+        }
+    }
+}

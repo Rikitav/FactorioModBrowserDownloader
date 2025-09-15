@@ -6,31 +6,28 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RootNamespace>FactorioNexus</RootNamespace>
-    <ApplicationIcon>factorio.ico</ApplicationIcon>
+    <ApplicationIcon>UserInterface\Assets\factorio.ico</ApplicationIcon>
+	  <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.Extensions.Configuration.Binder.SourceGeneration</InterceptorsNamespaces>
   </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-		<OutputType>Exe</OutputType>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+	  <OutputType>Exe</OutputType>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<OutputType>WinExe</OutputType>
-	</PropertyGroup>
-
-	<ItemGroup>
-	  <None Remove="ApplicationInterface\MainWindow\cracktorio.png" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="factorio.ico" />
-	</ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+	  <OutputType>WinExe</OutputType>
+  </PropertyGroup>
 
   <ItemGroup>
-	  <Resource Include="ApplicationInterface\MainWindow\background.jpg" />
-	  <Resource Include="ApplicationInterface\MainWindow\cracktorio.png" />
-	  <Resource Include="ApplicationInterface\MainWindow\factorio.png" />
-	  <Resource Include="ApplicationInterface\Fonts\TitilliumWeb-Bold.ttf" />
-	  <Resource Include="ApplicationInterface\Fonts\TitilliumWeb-Regular.ttf" />
+	  <Content Include="UserInterface\Assets\factorio.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <Resource Include="UserInterface\Assets\background.jpg" />
+	  <Resource Include="UserInterface\Assets\cracktorio.png" />
+	  <Resource Include="UserInterface\Assets\factorio.png" />
+	  <Resource Include="UserInterface\Assets\TitilliumWeb-Bold.ttf" />
+	  <Resource Include="UserInterface\Assets\TitilliumWeb-Regular.ttf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,8 +35,15 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
+	<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.8" />
     <PackageReference Include="NReco.Logging.File" Version="1.2.2" />
     <PackageReference Include="System.Text.Json" Version="9.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
